@@ -10,7 +10,8 @@ export function useBrowserNotifications() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
-    setPermission(window.Notification.permission);
+    const timer = window.setTimeout(() => setPermission(window.Notification.permission), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const enable = useCallback(async () => {
