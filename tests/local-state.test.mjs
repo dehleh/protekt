@@ -11,7 +11,7 @@ test('history construction excludes submitted content and domain names', () => {
 });
 test('malformed persisted data safely returns an empty state', () => {
   for (const raw of [null, '', 'not-json', 'null', '42', '{}']) {
-    assert.deepEqual(parseLocalState(raw), { checklist: [], recovery: [], history: [] });
+    assert.deepEqual(parseLocalState(raw), { checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [] });
   }
 });
 test('unknown properties are discarded from restored history', () => {
@@ -33,4 +33,16 @@ test('history is bounded to 30 summaries', () => {
 test('toggling checklist items is reversible and does not duplicate entries', () => {
   assert.deepEqual(toggleItem(['email'], 'email', true), ['email']);
   assert.deepEqual(toggleItem(['email', 'phone'], 'email', false), ['phone']);
+});
+test('family profiles keep bounded, supported fields only', () => {
+  const parsed = parseLocalState(JSON.stringify({
+    familyChecklist: ['family-locks', '<script>'],
+    familyProfiles: [
+      { id: 'child-1', name: '  Amara  ', role: 'Child', ageBand: '10–12', secret: 'remove-me' },
+      { id: 'bad', name: '', role: 'Admin', ageBand: 'Adult' },
+    ],
+  }));
+  assert.deepEqual(parsed.familyChecklist, ['family-locks', '<script>']);
+  assert.deepEqual(parsed.familyProfiles, [{ id: 'child-1', name: 'Amara', role: 'Child', ageBand: '10–12' }]);
+  assert.ok(!JSON.stringify(parsed).includes('remove-me'));
 });
