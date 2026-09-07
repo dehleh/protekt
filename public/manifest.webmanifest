@@ -1,0 +1,13 @@
+{
+  "name": "SHOMAR Protect",
+  "short_name": "SHOMAR",
+  "description": "Everyday digital safety for messages, links, accounts, and family security.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#101f39",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

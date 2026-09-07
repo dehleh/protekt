@@ -9,6 +9,8 @@ An early-access web application for everyday digital safety in Nigeria.
 - Four guided Cyber SOS journeys: WhatsApp takeover, compromised email, suspected payment fraud, and a lost or stolen phone.
 - Six account and device security tasks with device-local progress.
 - Family Security with local-only household profiles, age groups, a family safety checklist, shared rules, and links to official Google Family Link and Apple Screen Time setup.
+- A mobile safety pulse pinned to the app header: green when there is no active SHOMAR warning, amber when a second check is needed, and red when high-risk patterns are found.
+- Optional browser notifications for likely-scam and suspicious results after the user grants permission. The installable web app does not claim background phone status-bar monitoring or push delivery.
 - Recent check summaries stored only in the current browser. Original messages, URLs, screenshots, destination names, and security secrets are not persisted.
 - Copy/download of the current assessment guidance and controls to clear local data.
 
@@ -28,7 +30,7 @@ The `predev` and `prebuild` scripts copy OCR worker, WebAssembly, and English-la
 
 ## Product boundaries
 
-This release is a working early-access product, not a validated fraud detection service. Pattern matching has false positives and false negatives. A clean pattern check never guarantees safety. There is no live URL reputation, malware scanning, payment confirmation, bank connection, account monitoring, human response desk, stolen-device tracking service, or guaranteed recovery. Family Security is a privacy-first plan and checklist; it does not read family messages, block apps, enforce screen time, locate devices, or replace native parental controls.
+This release is a working early-access product, not a validated fraud detection service. Pattern matching has false positives and false negatives. A clean pattern check never guarantees safety. There is no live URL reputation, malware scanning, payment confirmation, bank connection, account monitoring, human response desk, stolen-device tracking service, or guaranteed recovery. Family Security is a privacy-first plan and checklist; it does not read family messages, block apps, enforce screen time, locate devices, or replace native parental controls. The safety pulse is an in-app signal, not access to the phone’s system status bar. Browser notifications work only while the app/browser has the necessary permission and operating-system support; background push requires a future service worker, backend, and consent flow.
 
 Checks operate locally. They never fetch submitted URLs, so submitted targets cannot create SSRF requests. User content renders as text through React. OCR accepts PNG/JPEG/WebP under 6 MB, checks image dimensions, limits decoded processing size, and supports cancellation and timeout. Language recognition currently supports English text, not QR decoding or visual identity verification.
 

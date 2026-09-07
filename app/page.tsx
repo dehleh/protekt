@@ -5,7 +5,7 @@ import { ArrowRight, ArrowUpRight, Check, ChevronRight, Clock3, FileImage, Histo
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { assess, validateInput, type Assessment, type CheckMode } from '@/lib/scam-engine';
+import { assess, validateInput, type Assessment, type CheckMode, type Verdict } from '@/lib/scam-engine';
 import { examples, protectionTasks } from '@/lib/safety-content';
 import { CheckResult } from '@/components/CheckResult';
 import { RecoveryView } from '@/components/RecoveryView';
@@ -13,10 +13,12 @@ import { ProtectionView } from '@/components/ProtectionView';
 import { FamilyView } from '@/components/FamilyView';
 import { HistoryView } from '@/components/HistoryView';
 import { ImageInput } from '@/components/ImageInput';
+import { SafetyPulse } from '@/components/SafetyPulse';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { STORAGE_KEY, emptyState, parseLocalState, historyEntry, toggleItem, type LocalState } from '@/lib/local-state';
 import { useWebTools } from '@/hooks/use-web-tools';
+import { useBrowserNotifications } from '@/hooks/use-browser-notifications';
 
 type View = 'check' | 'sos' | 'protection' | 'family' | 'history';
 const viewLabels: Record<View, string> = { check: 'ScamCheck', sos: 'Cyber SOS', protection: 'My protection', family: 'Family security', history: 'Recent checks' };
@@ -39,8 +41,11 @@ export default function Home() {
   const [ocrBusy, setOcrBusy] = useState(false);
   const resultAnchor = useRef<HTMLDivElement>(null);
   const headingAnchor = useRef<HTMLHeadingElement>(null);
+  const notifiedAssessment = useRef<string | null>(null);
+  const { supported: notificationsSupported, permission: notificationPermission, enable: enableNotifications, notify } = useBrowserNotifications();
   const completed = protectionTasks.filter(task => local.checklist.includes(task.id)).length;
   const nextTask = protectionTasks.find(task => !local.checklist.includes(task.id));
+  const pulseVerdict: Verdict | null = result?.verdict ?? local.history[0]?.verdict ?? null;
   useEffect(() => {
     try { const restored = parseLocalState(localStorage.getItem(STORAGE_KEY)); localRef.current = restored; setLocal(restored); }
     catch { setStorageWarning('This browser cannot save progress. You can still use SHOMAR, but changes will last only for this session.'); }
@@ -56,6 +61,13 @@ export default function Home() {
     requestAnimationFrame(() => { headingAnchor.current?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); });
   }, []);
   useEffect(() => { if (result && view === 'check') requestAnimationFrame(() => { resultAnchor.current?.scrollIntoView({ block: 'nearest', behavior: 'instant' }); resultAnchor.current?.focus({ preventScroll: true }); }); }, [result, view]);
+  useEffect(() => {
+    if (!result || !['likely-scam', 'suspicious'].includes(result.verdict) || notificationPermission !== 'granted') return;
+    const id = `${result.checkedAt}:${result.verdict}`;
+    if (notifiedAssessment.current === id) return;
+    notifiedAssessment.current = id;
+    notify(result.verdict === 'likely-scam' ? 'SHOMAR: high-risk signs found' : 'SHOMAR: pause and verify', result.summary);
+  }, [result, notificationPermission, notify]);
   function performCheck(content: string, selectedMode: CheckMode) {
     const issue = validateInput(content, selectedMode); if (issue) throw new Error(issue);
     const assessment = assess(content, selectedMode);
@@ -78,9 +90,9 @@ export default function Home() {
       <SidebarContent><div className="nav-label">YOUR DIGITAL SAFETY</div><SidebarMenu>
         {([{ id: 'check', label: 'ScamCheck', icon: ScanLine }, { id: 'sos', label: 'Cyber SOS', icon: LifeBuoy }, { id: 'protection', label: 'My protection', icon: ShieldCheck }, { id: 'family', label: 'Family security', icon: UsersRound }, { id: 'history', label: 'Recent checks', icon: History }] as const).map(item => <NavigationItem key={item.id} active={view === item.id} onNavigate={() => navigate(item.id)} label={item.label} icon={item.icon}/> )}
       </SidebarMenu></SidebarContent>
-      <SidebarFooter><div className="sidebar-note"><span className="small-icon"><LockKeyhole size={17}/></span><strong>Your privacy comes first.</strong><p>Your messages stay on this device during pattern checks.</p><button className="text-button privacy-trigger" onClick={() => setPrivacyOpen(true)}>Privacy &amp; data<ArrowUpRight size={13}/></button></div><div className="sidebar-bottom"><span className="local-avatar"><Shield size={17}/></span><div>Your personal space<small>Early access</small></div><span className="status-dot"/></div></SidebarFooter>
+      <SidebarFooter><div className="sidebar-note"><span className="small-icon"><LockKeyhole size={17}/></span><strong>Your privacy comes first.</strong><p>Your messages stay on this device during pattern checks.</p><button className="text-button privacy-trigger" onClick={() => setPrivacyOpen(true)}>Privacy &amp; data<ArrowUpRight size={13}/></button>{notificationsSupported && <button className="text-button privacy-trigger" onClick={() => { void enableNotifications(); }}>{notificationPermission === 'granted' ? 'Warning alerts are on' : notificationPermission === 'denied' ? 'Warning alerts blocked' : 'Enable warning alerts'}<ArrowUpRight size={13}/></button>}</div><div className="sidebar-bottom"><span className="local-avatar"><Shield size={17}/></span><div>Your personal space<small>Early access</small></div><span className="status-dot"/></div></SidebarFooter>
     </Sidebar>
-    <div className="workspace"><header className="topbar"><div className="breadcrumb"><SidebarTrigger className="mobile-menu"/><span>Your protection</span><ChevronRight size={14}/><strong>{viewLabels[view]}</strong></div><div className="topbar-right"><span className="beta-tag">EARLY ACCESS</span><span className="device-status"><span className="status-dot"/> On this device</span></div></header>
+    <div className="workspace"><header className="topbar"><div className="breadcrumb"><SidebarTrigger className="mobile-menu"/><span>Your protection</span><ChevronRight size={14}/><strong>{viewLabels[view]}</strong></div><div className="topbar-right"><SafetyPulse verdict={pulseVerdict} permission={notificationPermission} supported={notificationsSupported} onEnableAlerts={() => { void enableNotifications(); }}/><span className="beta-tag">EARLY ACCESS</span><span className="device-status"><span className="status-dot"/> On this device</span></div></header>
     <main id="main" className="main-content"><div className={view === 'check' ? 'page-heading' : 'page-heading view-heading'}><div><div className="eyebrow"><span/> A SAFER DIGITAL EVERYDAY</div><h1 ref={headingAnchor} tabIndex={-1}>{view === 'check' ? <>A second opinion.<br className="mobile-break"/> Before your next click.</> : titles[view]}</h1><p>{subtitles[view]}</p></div><span className="heading-mark"><ShieldCheck size={36} strokeWidth={1.3}/></span></div>
     {storageWarning && <p className="storage-warning" role="status">{storageWarning}</p>}{view === 'check' && <><div className="main-grid"><section className="check-panel panel"><div className="panel-heading"><span className="icon-tile blue"><ScanLine size={22}/></span><div><h2>Check something suspicious</h2><p>A message, a website, or a screenshot.</p></div><span className="free-tag">FREE</span></div>
       <Tabs value={mode} onValueChange={value => { setMode(value as CheckMode); setInput(''); setError(''); setResult(null); setOcrBusy(false); }}><TabsList className="check-tabs"><TabsTrigger value="message"><MessageSquareText/>Message</TabsTrigger><TabsTrigger value="link"><Link2/>Link</TabsTrigger><TabsTrigger value="screenshot"><FileImage/>Screenshot</TabsTrigger></TabsList>

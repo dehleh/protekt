@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: 'Check suspicious messages and links, follow account-recovery guidance, and take simple steps to protect your digital life.',
   robots: { index: false, follow: false },
   icons: { icon: '/favicon.svg' },
+  manifest: '/manifest.webmanifest',
+  themeColor: '#101f39',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
