@@ -11,7 +11,7 @@ test('history construction excludes submitted content and domain names', () => {
 });
 test('malformed persisted data safely returns an empty state', () => {
   for (const raw of [null, '', 'not-json', 'null', '42', '{}']) {
-    assert.deepEqual(parseLocalState(raw), { checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [] });
+    assert.deepEqual(parseLocalState(raw), { checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [], appOverview: [] });
   }
 });
 test('unknown properties are discarded from restored history', () => {
@@ -45,4 +45,9 @@ test('family profiles keep bounded, supported fields only', () => {
   assert.deepEqual(parsed.familyChecklist, ['family-locks', '<script>']);
   assert.deepEqual(parsed.familyProfiles, [{ id: 'child-1', name: 'Amara', role: 'Child', ageBand: '10–12' }]);
   assert.ok(!JSON.stringify(parsed).includes('remove-me'));
+});
+test('app overview keeps user selections local and bounded to strings', () => {
+  const parsed = parseLocalState(JSON.stringify({ appOverview: ['whatsapp', 'tiktok', 'whatsapp', { id: 'secret' }] }));
+  assert.deepEqual(parsed.appOverview, ['whatsapp', 'tiktok']);
+  assert.ok(!JSON.stringify(parsed).includes('secret'));
 });

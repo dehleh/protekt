@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { ArrowRight, ArrowUpRight, Check, ChevronRight, Clock3, FileImage, History, LifeBuoy, Link2, LockKeyhole, MessageSquareText, ScanLine, Shield, ShieldCheck, Sparkles, UsersRound } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, ChevronRight, Clock3, FileImage, Grid2X2, History, LifeBuoy, Link2, LockKeyhole, MessageSquareText, ScanLine, Shield, ShieldCheck, Sparkles, UsersRound } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +11,7 @@ import { CheckResult } from '@/components/CheckResult';
 import { RecoveryView } from '@/components/RecoveryView';
 import { ProtectionView } from '@/components/ProtectionView';
 import { FamilyView } from '@/components/FamilyView';
+import { AppOverviewView } from '@/components/AppOverviewView';
 import { HistoryView } from '@/components/HistoryView';
 import { ImageInput } from '@/components/ImageInput';
 import { SafetyPulse } from '@/components/SafetyPulse';
@@ -20,10 +21,10 @@ import { STORAGE_KEY, emptyState, parseLocalState, historyEntry, toggleItem, typ
 import { useWebTools } from '@/hooks/use-web-tools';
 import { useBrowserNotifications } from '@/hooks/use-browser-notifications';
 
-type View = 'check' | 'sos' | 'protection' | 'family' | 'history';
-const viewLabels: Record<View, string> = { check: 'ScamCheck', sos: 'Cyber SOS', protection: 'My protection', family: 'Family security', history: 'Recent checks' };
-const titles: Record<View, string> = { check: 'A second opinion. Before your next click.', sos: 'Let’s take the next step together.', protection: 'A safer digital life starts with you.', family: 'Protect the people who share your digital life.', history: 'Your checks, in one place.' };
-const subtitles: Record<View, string> = { check: 'Something feels off? Let’s take a closer look together.', sos: 'Practical guidance for when something has gone wrong.', protection: 'Small, practical steps for your accounts and your phone.', family: 'A calm, privacy-first way to build family security habits.', history: 'A private record of your recent check summaries, on this device.' };
+type View = 'check' | 'sos' | 'protection' | 'family' | 'apps' | 'history';
+const viewLabels: Record<View, string> = { check: 'ScamCheck', sos: 'Cyber SOS', protection: 'My protection', family: 'Family security', apps: 'App overview', history: 'Recent checks' };
+const titles: Record<View, string> = { check: 'A second opinion. Before your next click.', sos: 'Let’s take the next step together.', protection: 'A safer digital life starts with you.', family: 'Protect the people who share your digital life.', apps: 'Choose what SHOMAR should watch over.', history: 'Your checks, in one place.' };
+const subtitles: Record<View, string> = { check: 'Something feels off? Let’s take a closer look together.', sos: 'Practical guidance for when something has gone wrong.', protection: 'Small, practical steps for your accounts and your phone.', family: 'A calm, privacy-first way to build family security habits.', apps: 'Build a consent-first overview of your important accounts.', history: 'A private record of your recent check summaries, on this device.' };
 
 export default function Home() {
   const [mode, setMode] = useState<CheckMode>('message');
@@ -78,7 +79,7 @@ export default function Home() {
   function runCheck() { try { performCheck(input, mode); } catch (e) { setError(e instanceof Error ? e.message : 'We could not complete this check. Please try again.'); } }
   function clearSavedData() {
     if (confirmClear === 'all') {
-      updateLocal(() => ({ checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [] })); setInput(''); setResult(null); setError(''); setMode('message'); setOcrBusy(false); setGuideId(null);
+      updateLocal(() => ({ checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [], appOverview: [] })); setInput(''); setResult(null); setError(''); setMode('message'); setOcrBusy(false); setGuideId(null);
     } else updateLocal(previous => ({ ...previous, history: [] }));
     setConfirmClear(null);
   }
@@ -88,7 +89,7 @@ export default function Home() {
     <Sidebar className="app-sidebar">
       <SidebarHeader><a className="brand" href="/"><span className="brand-icon"><ShieldCheck size={27}/></span><span>SHOMAR<small>PROTECT</small></span></a></SidebarHeader>
       <SidebarContent><div className="nav-label">YOUR DIGITAL SAFETY</div><SidebarMenu>
-        {([{ id: 'check', label: 'ScamCheck', icon: ScanLine }, { id: 'sos', label: 'Cyber SOS', icon: LifeBuoy }, { id: 'protection', label: 'My protection', icon: ShieldCheck }, { id: 'family', label: 'Family security', icon: UsersRound }, { id: 'history', label: 'Recent checks', icon: History }] as const).map(item => <NavigationItem key={item.id} active={view === item.id} onNavigate={() => navigate(item.id)} label={item.label} icon={item.icon}/> )}
+        {([{ id: 'check', label: 'ScamCheck', icon: ScanLine }, { id: 'sos', label: 'Cyber SOS', icon: LifeBuoy }, { id: 'protection', label: 'My protection', icon: ShieldCheck }, { id: 'family', label: 'Family security', icon: UsersRound }, { id: 'apps', label: 'App overview', icon: Grid2X2 }, { id: 'history', label: 'Recent checks', icon: History }] as const).map(item => <NavigationItem key={item.id} active={view === item.id} onNavigate={() => navigate(item.id)} label={item.label} icon={item.icon}/> )}
       </SidebarMenu></SidebarContent>
       <SidebarFooter><div className="sidebar-note"><span className="small-icon"><LockKeyhole size={17}/></span><strong>Your privacy comes first.</strong><p>Your messages stay on this device during pattern checks.</p><button className="text-button privacy-trigger" onClick={() => setPrivacyOpen(true)}>Privacy &amp; data<ArrowUpRight size={13}/></button>{notificationsSupported && <button className="text-button privacy-trigger" onClick={() => { void enableNotifications(); }}>{notificationPermission === 'granted' ? 'Warning alerts are on' : notificationPermission === 'denied' ? 'Warning alerts blocked' : 'Enable warning alerts'}<ArrowUpRight size={13}/></button>}</div><div className="sidebar-bottom"><span className="local-avatar"><Shield size={17}/></span><div>Your personal space<small>Early access</small></div><span className="status-dot"/></div></SidebarFooter>
     </Sidebar>
@@ -109,11 +110,12 @@ export default function Home() {
     {view === 'sos' && <RecoveryView key={guideId ?? 'guides'} guideId={guideId} onGuide={setGuideId} done={local.recovery} onToggle={(id, checked) => updateLocal(previous => ({ ...previous, recovery: toggleItem(previous.recovery, id, checked) }))}/>}
     {view === 'protection' && <ProtectionView done={local.checklist} onToggle={(id, checked) => updateLocal(previous => ({ ...previous, checklist: toggleItem(previous.checklist, id, checked) }))}/>}
     {view === 'family' && <FamilyView profiles={local.familyProfiles} done={local.familyChecklist} onToggle={(id, checked) => updateLocal(previous => ({ ...previous, familyChecklist: toggleItem(previous.familyChecklist, id, checked) }))} onAddProfile={profile => updateLocal(previous => ({ ...previous, familyProfiles: [...previous.familyProfiles, profile].slice(0, 20) }))} onRemoveProfile={id => updateLocal(previous => ({ ...previous, familyProfiles: previous.familyProfiles.filter(profile => profile.id !== id) }))}/>}
+    {view === 'apps' && <AppOverviewView selected={local.appOverview} onToggle={(id, checked) => updateLocal(previous => ({ ...previous, appOverview: toggleItem(previous.appOverview, id, checked) }))}/>}
     {view === 'history' && <HistoryView history={local.history} onNew={() => navigate('check')} onClear={() => setConfirmClear('history')}/>}
     <footer className="page-footer"><span><ShieldCheck size={14}/> SHOMAR Protect <span className="footer-divider">/</span> By CyberCapSec</span><span>Built for your everyday digital life.</span></footer>
     </main></div>
-    <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}><DialogContent className="privacy-dialog"><DialogHeader><DialogTitle>Your privacy, in plain language.</DialogTitle><DialogDescription>ScamCheck processes messages, links, and screenshot text in this browser. It does not upload your submitted content.</DialogDescription></DialogHeader><h3>What stays on this device</h3><p>Your checklist progress, family names, recovery steps, and up to 30 check summaries. Summaries contain the check type, date, verdict, and number of warning signs. They exclude the original content and website names.</p><h3>What these checks cover</h3><p>Limited, explainable scam patterns and English screenshot text. SHOMAR does not check live threat databases, scan apps, confirm payments, monitor accounts, or read family messages in this release.</p><h3>You’re in control</h3><p>Clearing browser data also removes your progress and family plan. Anyone using this browser profile may see your saved summaries and family names. No account sync or human support service is connected.</p><button className="outline-button" onClick={() => { setPrivacyOpen(false); setConfirmClear('all'); }}>Clear all saved SHOMAR data</button></DialogContent></Dialog>
-    <AlertDialog open={confirmClear !== null} onOpenChange={open => { if (!open) setConfirmClear(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{confirmClear === 'all' ? 'Clear your saved SHOMAR data?' : 'Clear your recent checks?'}</AlertDialogTitle><AlertDialogDescription>{confirmClear === 'all' ? 'This removes your protection checklist, family plan, recovery progress, and check history from this browser. You can start again at any time.' : 'This removes the saved check summaries from this browser. Your protection, family, and recovery checklists will stay.'}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Keep my data</AlertDialogCancel><AlertDialogAction onClick={clearSavedData}>Clear data</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+    <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}><DialogContent className="privacy-dialog"><DialogHeader><DialogTitle>Your privacy, in plain language.</DialogTitle><DialogDescription>ScamCheck processes messages, links, and screenshot text in this browser. It does not upload your submitted content.</DialogDescription></DialogHeader><h3>What stays on this device</h3><p>Your checklist progress, family names, selected app overview, recovery steps, and up to 30 check summaries. Summaries contain the check type, date, verdict, and number of warning signs. They exclude the original content and website names.</p><h3>What these checks cover</h3><p>Limited, explainable scam patterns and English screenshot text. SHOMAR does not check live threat databases, scan apps, confirm payments, monitor accounts, read family messages, or inspect installed apps in this release.</p><h3>You’re in control</h3><p>Clearing browser data also removes your progress, family plan, and selected app overview. Anyone using this browser profile may see your saved summaries, family names, and selections. No account sync or human support service is connected.</p><button className="outline-button" onClick={() => { setPrivacyOpen(false); setConfirmClear('all'); }}>Clear all saved SHOMAR data</button></DialogContent></Dialog>
+    <AlertDialog open={confirmClear !== null} onOpenChange={open => { if (!open) setConfirmClear(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{confirmClear === 'all' ? 'Clear your saved SHOMAR data?' : 'Clear your recent checks?'}</AlertDialogTitle><AlertDialogDescription>{confirmClear === 'all' ? 'This removes your protection checklist, family plan, app overview, recovery progress, and check history from this browser. You can start again at any time.' : 'This removes the saved check summaries from this browser. Your protection, family, app overview, and recovery checklists will stay.'}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Keep my data</AlertDialogCancel><AlertDialogAction onClick={clearSavedData}>Clear data</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </SidebarProvider>;
 }
 

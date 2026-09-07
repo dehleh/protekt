@@ -3,8 +3,8 @@ import type { Assessment, CheckMode, Verdict } from './scam-engine';
 export const STORAGE_KEY = 'shomar-protect-v1';
 export type HistoryItem = { id: string; mode: CheckMode; verdict: Verdict; checkedAt: string; signals: number };
 export type FamilyProfile = { id: string; name: string; role: 'Parent' | 'Child' | 'Caregiver'; ageBand: string };
-export type LocalState = { checklist: string[]; recovery: string[]; history: HistoryItem[]; familyChecklist: string[]; familyProfiles: FamilyProfile[] };
-export const emptyState: LocalState = { checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [] };
+export type LocalState = { checklist: string[]; recovery: string[]; history: HistoryItem[]; familyChecklist: string[]; familyProfiles: FamilyProfile[]; appOverview: string[] };
+export const emptyState: LocalState = { checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [], appOverview: [] };
 const modes = new Set(['message', 'link', 'screenshot']);
 const verdicts = new Set(['likely-scam', 'suspicious', 'uncertain', 'no-signals']);
 export function parseLocalState(raw: string | null): LocalState {
@@ -20,7 +20,8 @@ export function parseLocalState(raw: string | null): LocalState {
       const item = profile as Record<string, unknown>;
       return typeof item.id === 'string' && item.id.length < 80 && typeof item.name === 'string' && item.name.trim().length > 0 && item.name.length < 60 && ['Parent', 'Child', 'Caregiver'].includes(String(item.role)) && typeof item.ageBand === 'string' && item.ageBand.length < 40;
     }).slice(0, 20).map((profile: FamilyProfile) => ({ id: profile.id, name: profile.name.trim(), role: profile.role, ageBand: profile.ageBand })) : [];
-    return { checklist: strings(value.checklist), recovery: strings(value.recovery), history, familyChecklist, familyProfiles };
+    const appOverview = strings(value.appOverview);
+    return { checklist: strings(value.checklist), recovery: strings(value.recovery), history, familyChecklist, familyProfiles, appOverview };
   } catch { return { ...emptyState }; }
 }
 export function historyEntry(result: Assessment, id: string): HistoryItem {
