@@ -33,6 +33,7 @@ import { useWebTools } from '@/hooks/use-web-tools';
 import { useBrowserNotifications } from '@/hooks/use-browser-notifications';
 import { LANGUAGES, type SupportedLanguage } from '@/lib/vernacular';
 import { FeatureFlagsProvider, useFeatureFlags } from '@/hooks/use-feature-flags';
+import { ShomarBrandLogo } from '@/components/ShomarBrandLogo';
 
 type View = 'check' | 'sos' | 'protection' | 'family' | 'apps' | 'history';
 const viewLabels: Record<View, string> = { check: 'ScamCheck', sos: 'Cyber SOS', protection: 'My protection', family: 'Family security', apps: 'App overview', history: 'Recent checks' };
@@ -152,7 +153,7 @@ function HomeContent() {
   return <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as CSSProperties}>
     <a className="skip-link" href="#main">Skip to content</a>
     <Sidebar className="app-sidebar">
-      <SidebarHeader><a className="brand" href="/"><span className="brand-icon"><ShieldCheck size={27}/></span><span>SHOMAR<small>PROTECT</small></span></a></SidebarHeader>
+      <SidebarHeader><a className="brand" href="/"><span className="brand-icon" style={{ background: '#0000FF', borderRadius: '12px', display: 'grid', placeItems: 'center', boxShadow: '0 4px 14px rgba(0,0,255,0.35)' }}><ShomarBrandLogo size={28} color="#FFFFFF" /></span><span>SHOMAR<small>PROTECT</small></span></a></SidebarHeader>
       <SidebarContent><div className="nav-label">YOUR DIGITAL SAFETY</div><SidebarMenu>
         {([{ id: 'check', label: 'ScamCheck', icon: ScanLine }, { id: 'sos', label: 'Cyber SOS', icon: LifeBuoy }, { id: 'protection', label: 'My protection', icon: ShieldCheck }, { id: 'family', label: 'Family security', icon: UsersRound }, { id: 'apps', label: 'App overview', icon: Grid2X2 }, { id: 'history', label: 'Recent checks', icon: History }] as const).map(item => <NavigationItem key={item.id} active={view === item.id} onNavigate={() => navigate(item.id)} label={item.label} icon={item.icon}/> )}
       </SidebarMenu></SidebarContent>

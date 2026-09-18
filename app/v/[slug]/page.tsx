@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ShieldCheck, ShieldAlert, Building2, MapPin, CheckCircle2, ArrowRight, ExternalLink, PhoneCall, AlertTriangle } from 'lucide-react';
 import { getVendorBySlug, KNOWN_TRUSTED_VENDORS } from '@/lib/vendor-trust';
 import { getStoredVendor } from '@/lib/db';
+import { ShomarBrandLogo } from '@/components/ShomarBrandLogo';
 
 export async function generateStaticParams() {
   return KNOWN_TRUSTED_VENDORS.map((v) => ({
@@ -19,18 +20,18 @@ export default async function VendorTrustProfilePage({ params }: PageProps) {
   const vendor = (await getStoredVendor(decodedSlug)) || getVendorBySlug(decodedSlug);
 
   return (
-    <main style={{ minHeight: '100vh', background: '#0a0f1d', color: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif', padding: '2rem 1rem' }}>
+    <main style={{ minHeight: '100vh', background: '#0C0C0C', color: '#F9F9F9', fontFamily: "'Poppins', sans-serif", padding: '2rem 1rem' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto' }}>
         
         {/* Top Header / Branding */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none', color: '#ffffff' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#365fe9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-              🛡️
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', color: '#ffffff' }}>
+            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#0000FF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,255,0.35)' }}>
+              <ShomarBrandLogo size={24} color="#FFFFFF" />
             </div>
             <div>
-              <span style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '0.05em' }}>SHOMAR</span>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>TRUST SEAL REGISTRY</span>
+              <span style={{ fontSize: '1rem', fontWeight: 800, letterSpacing: '0.04em' }}>SHOMAR</span>
+              <span style={{ fontSize: '0.7rem', color: '#29ABE2', display: 'block', fontWeight: 600 }}>TRUST SEAL REGISTRY</span>
             </div>
           </Link>
           <span style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem', borderRadius: '20px', background: 'rgba(54,95,233,0.15)', border: '1px solid rgba(54,95,233,0.3)', color: '#818cf8', fontWeight: 700 }}>
