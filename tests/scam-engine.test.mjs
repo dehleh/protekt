@@ -65,3 +65,27 @@ test('multiple links do not duplicate a warning', () => {
 test('single-word messages request more context', () => {
   assert.equal(assess('Hello').verdict, 'uncertain');
 });
+
+test('a 10-digit NUBAN payment demand triggers a strong warning', () => {
+  const result = assess('Transfer the registration fee into this account 0123456789 immediately.');
+  assert.ok(result.signals.some(s => s.id === 'nuban-harvest'));
+  assert.equal(result.verdict, 'likely-scam');
+});
+
+test('a private chat redirect for financial or work offers is flagged', () => {
+  const result = assess('New crypto investment task available. Click wa.me/2348012345678 to start earning daily profit.');
+  assert.ok(result.signals.some(s => s.id === 'chat-redirect'));
+  assert.equal(result.verdict, 'suspicious');
+});
+
+test('a lookalike fintech domain triggers fintech-spoof signal', () => {
+  const result = assess('https://opay-bonus-claim.net/login', 'link');
+  assert.ok(result.signals.some(s => s.id === 'fintech-spoof'));
+  assert.equal(result.verdict, 'likely-scam');
+});
+
+test('an official fintech domain does not trigger fintech-spoof signal', () => {
+  const result = assess('https://opayweb.com/login', 'link');
+  assert.ok(!result.signals.some(s => s.id === 'fintech-spoof'));
+});
+

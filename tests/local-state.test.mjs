@@ -11,7 +11,7 @@ test('history construction excludes submitted content and domain names', () => {
 });
 test('malformed persisted data safely returns an empty state', () => {
   for (const raw of [null, '', 'not-json', 'null', '42', '{}']) {
-    assert.deepEqual(parseLocalState(raw), { checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [], appOverview: [] });
+    assert.deepEqual(parseLocalState(raw), { checklist: [], recovery: [], history: [], familyChecklist: [], familyProfiles: [], appOverview: [], language: 'English', primaryBank: 'opay', country: 'NG' });
   }
 });
 test('unknown properties are discarded from restored history', () => {

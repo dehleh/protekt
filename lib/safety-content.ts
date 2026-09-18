@@ -41,4 +41,5 @@ export const examples = [
   { label: 'A suspicious message', mode: 'message' as const, text: 'Congratulations! You have been selected for a business grant. Pay a processing fee of ₦5,000 to claim your reward. Act now — today only!' },
   { label: 'An account warning', mode: 'message' as const, text: 'URGENT: Your account will be blocked within 30 minutes. Send your OTP to our support agent immediately to keep your account active.' },
   { label: 'An investment offer', mode: 'message' as const, text: 'Join our investment group for guaranteed returns. Double your money this week with a one-time deposit. Act now!' },
+  { label: 'Social commerce vendor', mode: 'vendor' as const, text: 'Flash sale 70% off brand new iPhone 15 Pro Max! DM to order on WhatsApp. Strictly payment before delivery, no pay on delivery accepted. Transfer ₦180,000 to OPay account 8012345678 to lock price.' },
 ];

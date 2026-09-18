@@ -2,6 +2,8 @@
 
 An early-access web application for everyday digital safety in Nigeria.
 
+The React Native Android/iOS application is in [`mobile/`](mobile/README.md), with its own Expo dependencies, development commands, native Android app-discovery module and device validation requirements.
+
 ## Included
 
 - ScamCheck for pasted messages and links, with explainable local pattern checks.

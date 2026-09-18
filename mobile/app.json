@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "SHOMAR Protect",
+    "slug": "shomar-protect",
+    "version": "0.2.1",
+    "scheme": "shomar-protect",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.shomar.protect",
+      "buildNumber": "2",
+      "infoPlist": { "ITSAppUsesNonExemptEncryption": false }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#112541",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.shomar.protect",
+      "versionCode": 2,
+      "allowBackup": false,
+      "softwareKeyboardLayoutMode": "resize",
+      "blockedPermissions": ["android.permission.RECORD_AUDIO", "android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.SYSTEM_ALERT_WINDOW"],
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "./plugins/with-supported-apps",
+      ["expo-notifications", { "icon": "./assets/notification-icon.png", "color": "#365FE9" }],
+      ["expo-image-picker", { "photosPermission": "Allow SHOMAR Protect to open a screenshot you choose for an on-device safety check.", "cameraPermission": false, "microphonePermission": false }],
+      ["expo-local-authentication", { "faceIDPermission": "Allow SHOMAR Protect to use Face ID to unlock your locally saved safety plan." }],
+      ["expo-sharing", {
+        "ios": { "enabled": true, "extensionBundleIdentifier": "com.shomar.protect.ShareExtension", "appGroupId": "group.com.shomar.protect", "activationRule": { "supportsText": true, "supportsWebUrlWithMaxCount": 1, "supportsWebPageWithMaxCount": 1, "supportsImageWithMaxCount": 1 } },
+        "android": { "enabled": true, "singleShareMimeTypes": ["text/plain", "image/*"], "multipleShareMimeTypes": [] }
+      }]
+    ]
+  }
+}

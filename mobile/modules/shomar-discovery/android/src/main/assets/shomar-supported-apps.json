@@ -1,0 +1,11 @@
+{
+  "instagram": ["com.instagram.android"],
+  "tiktok": ["com.zhiliaoapp.musically", "com.ss.android.ugc.trill"],
+  "snapchat": ["com.snapchat.android"],
+  "x": ["com.twitter.android"],
+  "facebook": ["com.facebook.katana"],
+  "gmail": ["com.google.android.gm"],
+  "outlook": ["com.microsoft.office.outlook"],
+  "whatsapp": ["com.whatsapp", "com.whatsapp.w4b"],
+  "telegram": ["org.telegram.messenger"]
+}

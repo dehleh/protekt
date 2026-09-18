@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -38,3 +38,22 @@ next-env.d.ts
 /work/
 /public/ocr/
 *.tsbuildinfo
+
+# mobile build and native outputs
+build/
+**/build/
+.gradle/
+**/.gradle/
+.expo/
+**/.expo/
+web-build/
+**/web-build/
+*.dex
+*.apk
+*.aab
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
