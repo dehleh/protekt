@@ -30,13 +30,17 @@ import { STORAGE_KEY, emptyState, parseLocalState, historyEntry, toggleItem, typ
 import { useWebTools } from '@/hooks/use-web-tools';
 import { useBrowserNotifications } from '@/hooks/use-browser-notifications';
 import { LANGUAGES, type SupportedLanguage } from '@/lib/vernacular';
+import { PlatformAdminModal } from '@/components/PlatformAdminModal';
+import { FeatureFlagsProvider, useFeatureFlags } from '@/hooks/use-feature-flags';
 
 type View = 'check' | 'sos' | 'protection' | 'family' | 'apps' | 'history';
 const viewLabels: Record<View, string> = { check: 'ScamCheck', sos: 'Cyber SOS', protection: 'My protection', family: 'Family security', apps: 'App overview', history: 'Recent checks' };
 const titles: Record<View, string> = { check: 'A second opinion. Before your next click.', sos: 'Let’s take the next step together.', protection: 'A safer digital life starts with you.', family: 'Protect the people who share your digital life.', apps: 'Choose what SHOMAR should watch over.', history: 'Your checks, in one place.' };
 const subtitles: Record<View, string> = { check: 'Something feels off? Let’s take a closer look together.', sos: 'Practical guidance for when something has gone wrong.', protection: 'Small, practical steps for your accounts and your phone.', family: 'A calm, privacy-first way to build family security habits.', apps: 'Build a consent-first overview of your important accounts.', history: 'A private record of your recent check summaries, on this device.' };
 
-export default function Home() {
+function HomeContent() {
+  const { flags } = useFeatureFlags();
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [mode, setMode] = useState<CheckMode>('message');
   const [input, setInput] = useState('');
   const [result, setResult] = useState<Assessment | null>(null);
@@ -142,88 +146,100 @@ export default function Home() {
       <SidebarContent><div className="nav-label">YOUR DIGITAL SAFETY</div><SidebarMenu>
         {([{ id: 'check', label: 'ScamCheck', icon: ScanLine }, { id: 'sos', label: 'Cyber SOS', icon: LifeBuoy }, { id: 'protection', label: 'My protection', icon: ShieldCheck }, { id: 'family', label: 'Family security', icon: UsersRound }, { id: 'apps', label: 'App overview', icon: Grid2X2 }, { id: 'history', label: 'Recent checks', icon: History }] as const).map(item => <NavigationItem key={item.id} active={view === item.id} onNavigate={() => navigate(item.id)} label={item.label} icon={item.icon}/> )}
       </SidebarMenu></SidebarContent>
-      <SidebarFooter><div className="sidebar-note"><span className="small-icon"><LockKeyhole size={17}/></span><strong>Your privacy comes first.</strong><p>Your messages stay on this device during pattern checks.</p><button className="text-button privacy-trigger" onClick={() => setPrivacyOpen(true)}>Privacy &amp; data<ArrowUpRight size={13}/></button>{notificationsSupported && <button className="text-button privacy-trigger" onClick={() => { void enableNotifications(); }}>{notificationPermission === 'granted' ? 'Warning alerts are on' : notificationPermission === 'denied' ? 'Warning alerts blocked' : 'Enable warning alerts'}<ArrowUpRight size={13}/></button>}</div><div className="sidebar-bottom"><span className="local-avatar"><Shield size={17}/></span><div>Your personal space<small>Early access</small></div><span className="status-dot"/></div></SidebarFooter>
+      <SidebarFooter><div className="sidebar-note"><span className="small-icon"><LockKeyhole size={17}/></span><strong>Your privacy comes first.</strong><p>Your messages stay on this device during pattern checks.</p><button className="text-button privacy-trigger" onClick={() => setPrivacyOpen(true)}>Privacy &amp; data<ArrowUpRight size={13}/></button>{notificationsSupported && <button className="text-button privacy-trigger" onClick={() => { void enableNotifications(); }}>{notificationPermission === 'granted' ? 'Warning alerts are on' : notificationPermission === 'denied' ? 'Warning alerts blocked' : 'Enable warning alerts'}<ArrowUpRight size={13}/></button>}<button className="text-button privacy-trigger" onClick={() => setAdminModalOpen(true)}>Admin Controls<ArrowUpRight size={13}/></button></div><div className="sidebar-bottom"><span className="local-avatar"><Shield size={17}/></span><div>Your personal space<small>Early access</small></div><span className="status-dot"/></div></SidebarFooter>
     </Sidebar>
-    <div className="workspace"><header className="topbar"><div className="breadcrumb"><SidebarTrigger className="mobile-menu"/><span>Your protection</span><ChevronRight size={14}/><strong>{viewLabels[view]}</strong></div><div className="topbar-right"><span style={{ fontSize: '0.73rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>⚡ 0.00 MB Offline Protected</span><select aria-label="Select region" value={local.country || 'NG'} onChange={e => handleCountryChange(e.target.value as CountryCode)} style={{ fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: 'pointer' }}>{SUPPORTED_COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}</select><select aria-label="Select guidance language" value={local.language} onChange={e => updateLocal(previous => ({ ...previous, language: e.target.value as SupportedLanguage }))} style={{ fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: 'pointer' }}>{LANGUAGES.map(lang => <option key={lang.id} value={lang.id}>{lang.nativeName}</option>)}</select><button type="button" onClick={() => setVendorModalOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #10B981', background: '#ECFDF5', color: '#047857', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>✓ Trust Seal</button><button type="button" onClick={() => setUssdSimOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #6366F1', background: '#EEF2FF', color: '#4338CA', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>📱 *384*746#</button><SafetyPulse verdict={pulseVerdict} permission={notificationPermission} supported={notificationsSupported} onEnableAlerts={() => { void enableNotifications(); }}/><span className="beta-tag">EARLY ACCESS</span><span className="device-status"><span className="status-dot"/> On this device</span></div></header>
+    <div className="workspace"><header className="topbar"><div className="breadcrumb"><SidebarTrigger className="mobile-menu"/><span>Your protection</span><ChevronRight size={14}/><strong>{viewLabels[view]}</strong></div><div className="topbar-right">{flags.offlineZeroDataBadge && <span style={{ fontSize: '0.73rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>⚡ 0.00 MB Offline Protected</span>}<select aria-label="Select region" value={local.country || 'NG'} onChange={e => handleCountryChange(e.target.value as CountryCode)} style={{ fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: 'pointer' }}>{SUPPORTED_COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}</select><select aria-label="Select guidance language" value={local.language} onChange={e => updateLocal(previous => ({ ...previous, language: e.target.value as SupportedLanguage }))} style={{ fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: 'pointer' }}>{LANGUAGES.map(lang => <option key={lang.id} value={lang.id}>{lang.nativeName}</option>)}</select>{flags.vendorTrustSeal && <button type="button" onClick={() => setVendorModalOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #10B981', background: '#ECFDF5', color: '#047857', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>✓ Trust Seal</button>}{flags.ussdSimulator && <button type="button" onClick={() => setUssdSimOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #6366F1', background: '#EEF2FF', color: '#4338CA', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>📱 *384*746#</button>}<button type="button" onClick={() => setAdminModalOpen(true)} aria-label="Platform Admin Controls" style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #475569', background: '#0f172a', color: '#f8fafc', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>⚙️ Admin</button><SafetyPulse verdict={pulseVerdict} permission={notificationPermission} supported={notificationsSupported} onEnableAlerts={() => { void enableNotifications(); }}/><span className="beta-tag">EARLY ACCESS</span><span className="device-status"><span className="status-dot"/> On this device</span></div></header>
     <main id="main" className="main-content">
       {/* 1-Click Primary Bank / Wallet Emergency Quick Freeze Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 1rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', marginBottom: '1.25rem', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>🚨</span>
-          <div>
-            <strong style={{ fontSize: '0.85rem', color: '#991B1B' }}>Emergency Panic Freeze ({activeCountry}): </strong>
-            <span style={{ fontSize: '0.85rem', color: '#7F1D1D', fontWeight: 600 }}>{userBank.name} ({userBank.ussdCode || userBank.phoneHotline})</span>
+      {flags.bankFreezeAndPnd && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 1rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', marginBottom: '1.25rem', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span style={{ fontSize: '1.25rem' }}>🚨</span>
+            <div>
+              <strong style={{ fontSize: '0.85rem', color: '#991B1B' }}>Emergency Panic Freeze ({activeCountry}): </strong>
+              <span style={{ fontSize: '0.85rem', color: '#7F1D1D', fontWeight: 600 }}>{userBank.name} ({userBank.ussdCode || userBank.phoneHotline})</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {userBank.dialUri && (
+              <a href={userBank.dialUri} style={{ background: '#DC2626', color: '#fff', padding: '0.35rem 0.85rem', borderRadius: '7px', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <PhoneCall size={13}/>1-Tap Dial {userBank.ussdCode || 'Freeze'}
+              </a>
+            )}
+            <select
+              aria-label="Select your primary bank or mobile wallet"
+              value={local.primaryBank}
+              onChange={e => updateLocal(prev => ({ ...prev, primaryBank: e.target.value }))}
+              style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', borderRadius: '6px', border: '1px solid #FCA5A5', background: '#fff', color: '#991B1B', fontWeight: 600, cursor: 'pointer' }}
+            >
+              {countryBanks.map(b => (
+                <option key={b.id} value={b.id}>My Institution: {b.shortName}</option>
+              ))}
+            </select>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {userBank.dialUri && (
-            <a href={userBank.dialUri} style={{ background: '#DC2626', color: '#fff', padding: '0.35rem 0.85rem', borderRadius: '7px', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <PhoneCall size={13}/>1-Tap Dial {userBank.ussdCode || 'Freeze'}
-            </a>
-          )}
-          <select
-            aria-label="Select your primary bank or mobile wallet"
-            value={local.primaryBank}
-            onChange={e => updateLocal(prev => ({ ...prev, primaryBank: e.target.value }))}
-            style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', borderRadius: '6px', border: '1px solid #FCA5A5', background: '#fff', color: '#991B1B', fontWeight: 600, cursor: 'pointer' }}
-          >
-            {countryBanks.map(b => (
-              <option key={b.id} value={b.id}>My Institution: {b.shortName}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      )}
 
       {/* African Indispensable High-Impact Growth Tray */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
-        <button
-          type="button"
-          onClick={() => setRadarOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
-        >
-          <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(245,158,11,0.15)', borderRadius: '8px' }}>📡</span>
-          <div>
-            <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Pre-Transfer Radar</strong>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Check NUBAN / MoMo before paying</span>
-          </div>
-        </button>
+      {(flags.preTransferRadar || flags.creatorVault || flags.bankFreezeAndPnd || flags.merchantSafeDeal) && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+          {flags.preTransferRadar && (
+            <button
+              type="button"
+              onClick={() => setRadarOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(245,158,11,0.15)', borderRadius: '8px' }}>📡</span>
+              <div>
+                <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Pre-Transfer Radar</strong>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Check NUBAN / MoMo before paying</span>
+              </div>
+            </button>
+          )}
 
-        <button
-          type="button"
-          onClick={() => setSocialVaultOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
-        >
-          <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(168,85,247,0.15)', borderRadius: '8px' }}>🎬</span>
-          <div>
-            <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Creator &amp; VIP Vault</strong>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Sponsorship infostealer &amp; ##002# lock</span>
-          </div>
-        </button>
+          {flags.creatorVault && (
+            <button
+              type="button"
+              onClick={() => setSocialVaultOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(168,85,247,0.15)', borderRadius: '8px' }}>🎬</span>
+              <div>
+                <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Creator &amp; VIP Vault</strong>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Sponsorship infostealer &amp; ##002# lock</span>
+              </div>
+            </button>
+          )}
 
-        <button
-          type="button"
-          onClick={() => setBankFreezeOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
-        >
-          <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(239,68,68,0.15)', borderRadius: '8px' }}>⚡</span>
-          <div>
-            <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>15-Min PND Recall</strong>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Demand freeze on scammer bank</span>
-          </div>
-        </button>
+          {flags.bankFreezeAndPnd && (
+            <button
+              type="button"
+              onClick={() => setBankFreezeOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(239,68,68,0.15)', borderRadius: '8px' }}>⚡</span>
+              <div>
+                <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>15-Min PND Recall</strong>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Demand freeze on scammer bank</span>
+              </div>
+            </button>
+          )}
 
-        <button
-          type="button"
-          onClick={() => setMerchantDealOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
-        >
-          <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(16,185,129,0.15)', borderRadius: '8px' }}>🛍️</span>
-          <div>
-            <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Safe Deal Link</strong>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Boost sales with verified bio seal</span>
-          </div>
-        </button>
-      </div>
+          {flags.merchantSafeDeal && (
+            <button
+              type="button"
+              onClick={() => setMerchantDealOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(16,185,129,0.15)', borderRadius: '8px' }}>🛍️</span>
+              <div>
+                <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Safe Deal Link</strong>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Boost sales with verified bio seal</span>
+              </div>
+            </button>
+          )}
+        </div>
+      )}
 
       <div className={view === 'check' ? 'page-heading' : 'page-heading view-heading'}><div><div className="eyebrow"><span/> A SAFER DIGITAL EVERYDAY</div><h1 ref={headingAnchor} tabIndex={-1}>{view === 'check' ? <>A second opinion.<br className="mobile-break"/> Before your next click.</> : titles[view]}</h1><p>{subtitles[view]}</p></div><span className="heading-mark"><ShieldCheck size={36} strokeWidth={1.3}/></span></div>
     {storageWarning && <p className="storage-warning" role="status">{storageWarning}</p>}{view === 'check' && <><div className="main-grid"><section className="check-panel panel">
@@ -240,17 +256,19 @@ export default function Home() {
             <small style={{ color: '#64748B', fontSize: '0.72rem' }}>Check IG/TikTok sellers</small>
           </div>
         </button>
-        <button
-          type="button"
-          onClick={() => setVendorModalOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 0.9rem', borderRadius: '12px', border: '1px solid #10B981', background: '#ECFDF5', cursor: 'pointer', textAlign: 'left' }}
-        >
-          <span style={{ fontSize: '1.3rem' }}>🛡️</span>
-          <div>
-            <strong style={{ display: 'block', fontSize: '0.82rem', color: '#047857' }}>Verify Trust Seal</strong>
-            <small style={{ color: '#059669', fontSize: '0.72rem' }}>CAC/KRA registered shop</small>
-          </div>
-        </button>
+        {flags.vendorTrustSeal && (
+          <button
+            type="button"
+            onClick={() => setVendorModalOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 0.9rem', borderRadius: '12px', border: '1px solid #10B981', background: '#ECFDF5', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span style={{ fontSize: '1.3rem' }}>🛡️</span>
+            <div>
+              <strong style={{ display: 'block', fontSize: '0.82rem', color: '#047857' }}>Verify Trust Seal</strong>
+              <small style={{ color: '#059669', fontSize: '0.72rem' }}>CAC/KRA registered shop</small>
+            </div>
+          </button>
+        )}
         <button
           type="button"
           onClick={() => { setMode('message'); setInput(''); setError(''); setResult(null); }}
@@ -298,7 +316,7 @@ export default function Home() {
       <p id="check-privacy" className="check-scope"><ShieldCheck size={14}/> Pattern checks only. No live website or account verification.</p>
       {!result && <div className="examples"><span>Just looking? Try an example</span><div>{examples.map(example => <button key={example.label} onClick={() => { setMode(example.mode); setInput(example.text); setError(''); setResult(null); setOcrBusy(false); }}>{example.label}<ArrowUpRight size={13}/></button>)}</div></div>}
       {result && <div ref={resultAnchor} tabIndex={-1}><CheckResult result={result} language={local.language} onSOS={() => navigate('sos')} onClear={() => setResult(null)}/></div>}
-      <PocketCyberDrill language={local.language} />
+      {flags.pocketCyberDrill && <PocketCyberDrill language={local.language} />}
     </section>
     <aside className="right-column"><section className="readiness-card"><div className="card-kicker"><ShieldCheck size={17}/> YOUR PROTECTION</div><h2>Small steps.<br/>Stronger protection.</h2><p>A few simple changes can make a real difference to your digital life.</p><div className="readiness-stat"><strong>{completed}<span> / {protectionTasks.length}</span></strong><span>security steps completed</span></div><Progress value={completed / protectionTasks.length * 100} aria-label={`${completed} of ${protectionTasks.length} security steps completed`}/><div className="next-task"><span><LockKeyhole size={18}/></span><div><small>{completed === 0 ? 'START HERE' : nextTask ? 'YOUR NEXT STEP' : 'CHECKLIST COMPLETE'}</small><strong>{nextTask?.title ?? 'Keep your recovery options current'}</strong></div><ChevronRight size={18}/></div><button className="light-button" onClick={() => navigate('protection')}>Build my protection<ArrowRight size={17}/></button><div className="self-reported"><Check size={12}/> Your checklist. Updated by you.</div></section>
     <section className="tip-card"><div className="card-kicker"><Sparkles size={16}/> A LITTLE KNOW-HOW</div><h3>A familiar logo isn’t proof.</h3><p>Scammers can copy a bank’s name and design. Open your bank app directly to verify a request.</p><span className="tip-rule"/></section></aside></div>
@@ -344,7 +362,19 @@ export default function Home() {
       isOpen={merchantDealOpen}
       onClose={() => setMerchantDealOpen(false)}
     />
+    <PlatformAdminModal
+      isOpen={adminModalOpen}
+      onClose={() => setAdminModalOpen(false)}
+    />
   </SidebarProvider>;
+}
+
+export default function Home() {
+  return (
+    <FeatureFlagsProvider>
+      <HomeContent />
+    </FeatureFlagsProvider>
+  );
 }
 
 function NavigationItem({ active, label, icon: Icon, onNavigate }: { active: boolean; label: string; icon: typeof ScanLine; onNavigate: () => void }) {

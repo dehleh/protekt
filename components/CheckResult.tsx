@@ -6,8 +6,10 @@ import { VERNACULAR_GUIDANCE, type SupportedLanguage } from '@/lib/vernacular';
 import { EvidenceSlipModal } from './EvidenceSlipModal';
 import { FamilyBroadcastModal } from './FamilyBroadcastModal';
 import { ScamBusterCardModal } from './ScamBusterCardModal';
+import { useFeatureFlags } from '@/hooks/use-feature-flags';
 
 export function CheckResult({ result, language = 'English', onSOS, onClear }: { result: Assessment; language?: SupportedLanguage; onSOS: () => void; onClear: () => void }) {
+  const { flags } = useFeatureFlags();
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -144,7 +146,7 @@ export function CheckResult({ result, language = 'English', onSOS, onClear }: { 
           <span className="card-kicker">ANALYSIS SUMMARY</span>
           <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>{result.title}</h4>
         </div>
-        {speechSupported && (
+        {speechSupported && flags.voiceGuidance && (
           <button
             className="text-button"
             onClick={toggleSpeech}
@@ -232,13 +234,17 @@ export function CheckResult({ result, language = 'English', onSOS, onClear }: { 
       <div className="result-tools" style={{ marginTop: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <button className="text-button" onClick={copyReport}><Copy size={14} />{copied ? 'Copied' : 'Copy guidance'}</button>
         <button className="text-button" onClick={downloadReport}><Download size={14} />Save guidance</button>
-        <button className="text-button" onClick={() => setEvidenceOpen(true)} style={{ color: '#2563EB', fontWeight: 600 }}>
-          <FileText size={14} />📄 Bank Evidence Slip
-        </button>
-        <button className="text-button" onClick={() => setBroadcastOpen(true)} style={{ color: '#DC2626', fontWeight: 600 }}>
-          <Users size={14} />🚨 Alert Family &amp; Circle
-        </button>
-        {(result.verdict === 'likely-scam' || result.verdict === 'suspicious') && (
+        {flags.evidenceSlip && (
+          <button className="text-button" onClick={() => setEvidenceOpen(true)} style={{ color: '#2563EB', fontWeight: 600 }}>
+            <FileText size={14} />📄 Bank Evidence Slip
+          </button>
+        )}
+        {flags.familyBroadcast && (
+          <button className="text-button" onClick={() => setBroadcastOpen(true)} style={{ color: '#DC2626', fontWeight: 600 }}>
+            <Users size={14} />🚨 Alert Family &amp; Circle
+          </button>
+        )}
+        {flags.scamBusterCard && (result.verdict === 'likely-scam' || result.verdict === 'suspicious') && (
           <button
             className="text-button"
             onClick={() => setScamBusterOpen(true)}
