@@ -92,9 +92,9 @@ export async function ensureMigrations(): Promise<boolean> {
         await client.query(`
           CREATE TABLE IF NOT EXISTS shomar_threat_reports (
             id SERIAL PRIMARY KEY,
-            type VARCHAR(32) NOT NULL,
-            blinded_token VARCHAR(64) NOT NULL,
-            country VARCHAR(64) DEFAULT 'Regional',
+            type VARCHAR(64) NOT NULL,
+            blinded_token VARCHAR(128) NOT NULL,
+            country VARCHAR(128) DEFAULT 'Regional',
             zero_knowledge BOOLEAN DEFAULT true,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
@@ -104,12 +104,12 @@ export async function ensureMigrations(): Promise<boolean> {
         // 3. Verified vendors registry
         await client.query(`
           CREATE TABLE IF NOT EXISTS shomar_verified_vendors (
-            slug VARCHAR(64) PRIMARY KEY,
+            slug VARCHAR(128) PRIMARY KEY,
             business_name VARCHAR(256) NOT NULL,
-            category VARCHAR(64),
+            category VARCHAR(128),
             country VARCHAR(64),
             trust_score INT DEFAULT 95,
-            verification_tier VARCHAR(32) DEFAULT 'tier-3',
+            verification_tier VARCHAR(128) DEFAULT 'tier-3',
             data JSONB NOT NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
@@ -119,8 +119,8 @@ export async function ensureMigrations(): Promise<boolean> {
         await client.query(`
           CREATE TABLE IF NOT EXISTS shomar_audit_logs (
             id SERIAL PRIMARY KEY,
-            action VARCHAR(64) NOT NULL,
-            actor VARCHAR(64) DEFAULT 'admin',
+            action VARCHAR(128) NOT NULL,
+            actor VARCHAR(128) DEFAULT 'admin',
             details JSONB,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
@@ -159,12 +159,14 @@ export async function ensureMigrations(): Promise<boolean> {
         return true;
       } catch (migrationErr: any) {
         await client.query('ROLLBACK');
+        migrationPromise = null;
         console.warn('[SHOMAR DB] Migration transaction rolled back:', migrationErr.message);
         return false;
       } finally {
         client.release();
       }
     } catch (connectErr: any) {
+      migrationPromise = null;
       console.warn('[SHOMAR DB] Database unreachable, continuing with in-memory store:', connectErr.message);
       return false;
     }
