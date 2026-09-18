@@ -3,6 +3,7 @@ import { ArrowRight, CircleAlert, CircleHelp, Copy, Download, FileText, ShieldCh
 import { useEffect, useState } from 'react';
 import type { Assessment } from '@/lib/scam-engine';
 import { VERNACULAR_GUIDANCE, type SupportedLanguage } from '@/lib/vernacular';
+import { speakVernacularText, stopVernacularSpeech } from '@/lib/voice-speech';
 import { EvidenceSlipModal } from './EvidenceSlipModal';
 import { FamilyBroadcastModal } from './FamilyBroadcastModal';
 import { ScamBusterCardModal } from './ScamBusterCardModal';
@@ -33,18 +34,18 @@ export function CheckResult({ result, language = 'English', onSOS, onClear }: { 
   function toggleSpeech() {
     if (!speechSupported) return;
     if (speaking) {
-      window.speechSynthesis.cancel();
+      stopVernacularSpeech();
       setSpeaking(false);
       return;
     }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(localized.speechText);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    setSpeaking(true);
-    window.speechSynthesis.speak(utterance);
+    const started = speakVernacularText(
+      localized.speechText,
+      language,
+      () => setSpeaking(true),
+      () => setSpeaking(false),
+      () => setSpeaking(false)
+    );
+    if (!started) setSpeaking(false);
   }
 
   const report = [

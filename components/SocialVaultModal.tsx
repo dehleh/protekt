@@ -21,6 +21,8 @@ import {
   TELCO_ANTI_HIJACK,
   generateChannelHijackAffidavit,
   CREATOR_SUPPORT_CHANNELS,
+  auditBrandDealContract,
+  type BrandDealAuditResult,
 } from '../lib/social-shield';
 
 interface SocialVaultModalProps {
@@ -33,7 +35,11 @@ export function SocialVaultModal({ isOpen, onClose }: SocialVaultModalProps) {
 
   // Scanner state
   const [pitchText, setPitchText] = useState('');
+  const [senderEmail, setSenderEmail] = useState('');
+  const [attachmentNames, setAttachmentNames] = useState('');
   const [scanResult, setScanResult] = useState<SocialPhishingResult | null>(null);
+  const [brandAuditResult, setBrandAuditResult] = useState<BrandDealAuditResult | null>(null);
+  const [copiedCounterOffer, setCopiedCounterOffer] = useState(false);
 
   // Recovery state
   const [creatorName, setCreatorName] = useState('');
@@ -50,17 +56,33 @@ export function SocialVaultModal({ isOpen, onClose }: SocialVaultModalProps) {
     if (!pitchText.trim()) return;
     const res = scanCreatorSponsorship(pitchText);
     setScanResult(res);
+    const files = attachmentNames.split(',').map(f => f.trim()).filter(Boolean);
+    const brandAudit = auditBrandDealContract(pitchText, senderEmail, files);
+    setBrandAuditResult(brandAudit);
   };
 
-  const handleSampleScam = (type: 'zip' | 'copyright') => {
+  const handleSampleScam = (type: 'zip' | 'copyright' | 'fake-nike') => {
     if (type === 'zip') {
       const sample = `Hi! We are Apex Gaming. We love your videos and want to offer you $4,500 to review our new game on your channel! Attached is our contract & game build launcher in game_build.zip (password is 1234). Please review within 24 hours to secure payment!`;
       setPitchText(sample);
+      setSenderEmail('campaigns@apex-gaming-reviews.xyz');
+      setAttachmentNames('contract.pdf, game_launcher.exe');
       setScanResult(scanCreatorSponsorship(sample));
+      setBrandAuditResult(auditBrandDealContract(sample, 'campaigns@apex-gaming-reviews.xyz', ['contract.pdf', 'game_launcher.exe']));
+    } else if (type === 'fake-nike') {
+      const sample = `Dear Creator, Nike wishes to sponsor your next 3 videos for $12,000. Please add our marketing partner account (nike-manager@collab-adsuite.com) as Manager to your YouTube Studio and Meta Business Suite to link ad metrics.`;
+      setPitchText(sample);
+      setSenderEmail('sponsorships@nike-partners-collab.co');
+      setAttachmentNames('brief.pdf');
+      setScanResult(scanCreatorSponsorship(sample));
+      setBrandAuditResult(auditBrandDealContract(sample, 'sponsorships@nike-partners-collab.co', ['brief.pdf']));
     } else {
       const sample = `URGENT NOTICE: Your Instagram account has violated copyright guidelines. Your verified badge and monetized account will be permanently disabled within 24 hours. Click here to appeal: http://meta-support-verify-desk.com/appeal`;
       setPitchText(sample);
+      setSenderEmail('security-alert@meta-support-verify-desk.com');
+      setAttachmentNames('');
       setScanResult(scanCreatorSponsorship(sample));
+      setBrandAuditResult(auditBrandDealContract(sample, 'security-alert@meta-support-verify-desk.com', []));
     }
   };
 
@@ -154,12 +176,18 @@ export function SocialVaultModal({ isOpen, onClose }: SocialVaultModalProps) {
                 <label className="text-xs font-semibold text-neutral-300">
                   Paste Sponsorship Email, Brand DM, or Copyright Strike:
                 </label>
-                <div className="flex gap-1.5">
+                <div className="flex flex-wrap gap-1.5">
                   <button
                     onClick={() => handleSampleScam('zip')}
                     className="text-[10px] px-2 py-0.5 rounded-md bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
                   >
                     Demo: Password ZIP
+                  </button>
+                  <button
+                    onClick={() => handleSampleScam('fake-nike')}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-neutral-800 hover:bg-neutral-700 text-purple-300 font-semibold"
+                  >
+                    Demo: Fake Brand Deal
                   </button>
                   <button
                     onClick={() => handleSampleScam('copyright')}
@@ -169,10 +197,38 @@ export function SocialVaultModal({ isOpen, onClose }: SocialVaultModalProps) {
                   </button>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label className="text-[11px] font-medium text-neutral-400 block mb-1">
+                    Sender Email Address (Optional):
+                  </label>
+                  <input
+                    type="text"
+                    value={senderEmail}
+                    onChange={(e) => setSenderEmail(e.target.value)}
+                    placeholder="e.g. collab@nike-partners-collab.co"
+                    className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-neutral-400 block mb-1">
+                    Attachment Filenames (comma-separated):
+                  </label>
+                  <input
+                    type="text"
+                    value={attachmentNames}
+                    onChange={(e) => setAttachmentNames(e.target.value)}
+                    placeholder="e.g. sponsorship_brief.pdf, game_demo.exe"
+                    className="w-full p-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
               <textarea
                 value={pitchText}
                 onChange={(e) => setPitchText(e.target.value)}
-                rows={4}
+                rows={3}
                 placeholder="Paste the collaboration email or DM here (e.g. 'We offer $5,000 for a review, download the contract in contract.zip, password is 1234')..."
                 className="w-full p-3 rounded-xl bg-neutral-950 border border-neutral-700 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-purple-500"
               />
@@ -181,9 +237,64 @@ export function SocialVaultModal({ isOpen, onClose }: SocialVaultModalProps) {
                 className="mt-2 w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-purple-950 transition active:scale-98"
               >
                 <Search size={14} />
-                <span>Scan for Session Stealers & Phishing</span>
+                <span>Audit Brand Deal & Contract for Session Stealers</span>
               </button>
             </div>
+
+            {/* Brand Deal Domain & Contract Audit Card */}
+            {brandAuditResult && (
+              <div className="p-3.5 rounded-2xl bg-neutral-950 border border-purple-500/30 text-xs space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white">Brand Deal Audit:</span>
+                    <span className="text-purple-300 font-semibold">{brandAuditResult.brandDetected}</span>
+                  </div>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                    brandAuditResult.safetyScore >= 80 ? 'bg-emerald-500/20 text-emerald-300' : brandAuditResult.safetyScore >= 50 ? 'bg-amber-500/20 text-amber-300' : 'bg-red-500/20 text-red-300'
+                  }`}>
+                    Creator Safety Score: {brandAuditResult.safetyScore}/100
+                  </span>
+                </div>
+
+                {brandAuditResult.isDomainLookalike && (
+                  <div className="p-2 rounded-xl bg-red-950/60 border border-red-500/50 text-red-200 text-[11px] font-medium">
+                    ⚠️ SENDER DOMAIN SPOOF: This sender claims to represent {brandAuditResult.brandDetected} but is emailing from &quot;{brandAuditResult.senderDomain}&quot;. Legitimate brand deals come strictly from corporate domains.
+                  </div>
+                )}
+
+                {brandAuditResult.safeCheckpoints.length > 0 && (
+                  <div className="space-y-1 text-[11px] text-emerald-400">
+                    {brandAuditResult.safeCheckpoints.map((cp, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5">
+                        <span>✓</span>
+                        <span>{cp}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Safe Counter-Offer Protocol */}
+                <div className="pt-2 border-t border-neutral-800">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-bold text-neutral-300 text-[11px]">Safe Creator Counter-Offer Template:</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(brandAuditResult.safeCounterOfferProtocol);
+                        setCopiedCounterOffer(true);
+                        setTimeout(() => setCopiedCounterOffer(false), 2000);
+                      }}
+                      className="text-[10px] text-purple-300 hover:text-purple-200 font-semibold flex items-center gap-1"
+                    >
+                      <Copy size={11} />
+                      <span>{copiedCounterOffer ? 'Copied!' : 'Copy Safe Reply'}</span>
+                    </button>
+                  </div>
+                  <pre className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-[10px] font-mono text-neutral-300 whitespace-pre-wrap">
+                    {brandAuditResult.safeCounterOfferProtocol}
+                  </pre>
+                </div>
+              </div>
+            )}
 
             {scanResult && (
               <div

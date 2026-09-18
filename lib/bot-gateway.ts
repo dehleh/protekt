@@ -20,6 +20,10 @@ const LANGUAGE_COMMANDS: Record<string, SupportedLanguage> = {
   hausa: 'Hausa',
   yoruba: 'Yoruba',
   igbo: 'Igbo',
+  swahili: 'Swahili',
+  kiswahili: 'Swahili',
+  zulu: 'Zulu',
+  isizulu: 'Zulu',
   english: 'English',
 };
 

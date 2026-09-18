@@ -242,3 +242,148 @@ export const CREATOR_SUPPORT_CHANNELS = {
     priorityTip: 'Email support@whatsapp.com with body: "Lost/Stolen: Please deactivate my account +[YourCountryCode][YourPhone]". WhatsApp immediately logs out the scammer.',
   },
 };
+
+export interface BrandDealAuditResult {
+  verdict: 'verified-safe' | 'caution' | 'critical-hijack-risk';
+  safetyScore: number; // 0 - 100
+  brandDetected: string;
+  senderDomain: string;
+  isDomainLookalike: boolean;
+  threatsFound: string[];
+  safeCheckpoints: string[];
+  safeCounterOfferProtocol: string;
+}
+
+const POPULAR_BRANDS = [
+  { brand: 'Nike', legitimateDomain: 'nike.com', keywords: ['nike'] },
+  { brand: 'Coca-Cola', legitimateDomain: 'coca-cola.com', keywords: ['coca-cola', 'cocacola'] },
+  { brand: 'NordVPN', legitimateDomain: 'nordvpn.com', keywords: ['nordvpn', 'nord'] },
+  { brand: 'Adobe', legitimateDomain: 'adobe.com', keywords: ['adobe', 'photoshop'] },
+  { brand: 'Epic Games', legitimateDomain: 'epicgames.com', keywords: ['epic games', 'fortnite'] },
+  { brand: 'Samsung', legitimateDomain: 'samsung.com', keywords: ['samsung'] },
+  { brand: 'Binance', legitimateDomain: 'binance.com', keywords: ['binance'] },
+  { brand: 'EA Sports', legitimateDomain: 'ea.com', keywords: ['ea sports', 'fifa'] },
+];
+
+/**
+ * In-depth brand deal, sponsorship pitch, and contract auditor for monetized creators
+ */
+export function auditBrandDealContract(
+  pitchText: string,
+  senderEmail?: string,
+  attachmentNames?: string[]
+): BrandDealAuditResult {
+  const content = pitchText.toLowerCase();
+  const rawEmail = (senderEmail || '').trim().toLowerCase();
+  const threatsFound: string[] = [];
+  const safeCheckpoints: string[] = [];
+  let riskPoints = 0;
+
+  // 1. Detect Brand & Domain Consistency
+  let brandDetected = 'Independent / Unrecognized Brand';
+  let senderDomain = '';
+  let isDomainLookalike = false;
+
+  if (rawEmail.includes('@')) {
+    senderDomain = rawEmail.split('@')[1] || '';
+  }
+
+  // Free email domain check for enterprise brands
+  const isFreeEmail = /(?:gmail\.com|yahoo\.com|outlook\.com|hotmail\.com|proton\.me|mail\.ru)$/i.test(senderDomain);
+
+  for (const b of POPULAR_BRANDS) {
+    const mentionsBrand = b.keywords.some(k => content.includes(k) || rawEmail.includes(k));
+    if (mentionsBrand) {
+      brandDetected = b.brand;
+      if (senderDomain) {
+        if (senderDomain === b.legitimateDomain) {
+          safeCheckpoints.push(`Sender domain matches official ${b.brand} corporate domain (${b.legitimateDomain}).`);
+        } else if (isFreeEmail) {
+          threatsFound.push(`FREE WEBMAIL SPOOF: Pitch claims to represent ${b.brand} but sends from a free ${senderDomain} email address.`);
+          riskPoints += 45;
+          isDomainLookalike = true;
+        } else {
+          threatsFound.push(`DOMAIN SPOOFING: Sender domain is "${senderDomain}" instead of the authentic "${b.legitimateDomain}".`);
+          riskPoints += 60;
+          isDomainLookalike = true;
+        }
+      }
+      break;
+    }
+  }
+
+  // 2. Scan Attachment File Extensions
+  const files = attachmentNames || [];
+  const dangerousExts = ['.scr', '.exe', '.bat', '.cmd', '.pif', '.vbs', '.iso', '.msi', '.hta', '.jar', '.apk'];
+  
+  for (const file of files) {
+    const lower = file.toLowerCase();
+    const isDangerous = dangerousExts.some(ext => lower.endsWith(ext));
+    if (isDangerous) {
+      threatsFound.push(`CRITICAL MALWARE PAYLOAD: Attachment "${file}" is an executable script or disk image file. Opening this will steal your browser session tokens and 2FA keys.`);
+      riskPoints += 70;
+    }
+  }
+
+  // Also check if text talks about attached zip with password
+  const hasPasswordProtectedArchive = /(?:password|pass|pwd)\s*(?:is|:|=)\s*["']?\w+["']?/i.test(content) &&
+    /(?:\.zip|\.rar|archive|attached file|attachment)/i.test(content);
+  if (hasPasswordProtectedArchive) {
+    threatsFound.push('PASSWORD-PROTECTED ARCHIVE TRICK: Scammers password-protect ZIP files so Google and Microsoft email antivirus filters cannot inspect the infostealer malware inside.');
+    riskPoints += 55;
+  }
+
+  // 3. Channel Manager / Permission Escalation Trap
+  const mentionsAdminDelegation = /(?:add our (?:manager|email|partner)|invite us to (?:youtube studio|business manager|meta business)|grant manager access|link partner account|add as editor)/i.test(content);
+  if (mentionsAdminDelegation) {
+    threatsFound.push('PERMISSION TAKEOVER TRAP: Asks you to add their email as Manager/Owner in YouTube Studio or Meta Business Suite. This allows them to transfer channel ownership and remove you.');
+    riskPoints += 65;
+  }
+
+  // 4. Advance Fee / Software License Scam
+  const hasAdvanceFee = /(?:pay (?:registration|test|license|software) fee|buy our client software|deposit \$?\d+|license cost will be reimbursed)/i.test(content);
+  if (hasAdvanceFee) {
+    threatsFound.push('ADVANCE FEE FRAUD: Genuine brands pay creators; they NEVER ask creators to pay an upfront license or registration deposit.');
+    riskPoints += 50;
+  }
+
+  // 5. Positive safety checkpoints if clean
+  if (!hasPasswordProtectedArchive && files.length > 0 && threatsFound.length === 0) {
+    safeCheckpoints.push('No dangerous executable payloads or archive evasion detected in attachments.');
+  }
+  if (!mentionsAdminDelegation) {
+    safeCheckpoints.push('Proposal does not request account administrator or YouTube Studio manager privileges.');
+  }
+  if (!hasAdvanceFee) {
+    safeCheckpoints.push('Proposal does not demand upfront software fees or license purchases.');
+  }
+
+  // Normalize final safety score (100 is cleanest, 0 is dangerous)
+  const safetyScore = Math.max(0, 100 - riskPoints);
+
+  const safeCounterOfferProtocol = [
+    `SAFE CREATOR COUNTER-OFFER PROTOCOL:`,
+    `1. "Thank you for reaching out. As a strict security policy, our management only accepts sponsorship contracts in standard PDF format via DocuSign or HelloSign."`,
+    `2. "We never download executable software, test game builds on our primary studio PCs, or provide manager access to our YouTube Studio/Meta Business Suite."`,
+    `3. "All brand payments must be wired to our verified agency business account prior to scheduled content release."`,
+  ].join('\n');
+
+  let verdict: BrandDealAuditResult['verdict'] = 'verified-safe';
+  if (riskPoints >= 50) {
+    verdict = 'critical-hijack-risk';
+  } else if (riskPoints >= 20) {
+    verdict = 'caution';
+  }
+
+  return {
+    verdict,
+    safetyScore,
+    brandDetected,
+    senderDomain: senderDomain || 'Not specified',
+    isDomainLookalike,
+    threatsFound,
+    safeCheckpoints,
+    safeCounterOfferProtocol,
+  };
+}
+

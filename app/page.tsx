@@ -24,6 +24,8 @@ import { ScamBusterCardModal } from '@/components/ScamBusterCardModal';
 import { BankFreezeModal } from '@/components/BankFreezeModal';
 import { SocialVaultModal } from '@/components/SocialVaultModal';
 import { MerchantDealModal } from '@/components/MerchantDealModal';
+import { FakeAlertModal } from '@/components/FakeAlertModal';
+import { WhatsAppSimulatorModal } from '@/components/WhatsAppSimulatorModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { STORAGE_KEY, emptyState, parseLocalState, historyEntry, toggleItem, type LocalState, type CountryCode } from '@/lib/local-state';
@@ -64,6 +66,8 @@ function HomeContent() {
   const [bankFreezeOpen, setBankFreezeOpen] = useState(false);
   const [socialVaultOpen, setSocialVaultOpen] = useState(false);
   const [merchantDealOpen, setMerchantDealOpen] = useState(false);
+  const [fakeAlertOpen, setFakeAlertOpen] = useState(false);
+  const [whatsappBotOpen, setWhatsappBotOpen] = useState(false);
   const completed = protectionTasks.filter(task => local.checklist.includes(task.id)).length;
   const nextTask = protectionTasks.find(task => !local.checklist.includes(task.id));
   const pulseVerdict: Verdict | null = result?.verdict ?? local.history[0]?.verdict ?? null;
@@ -154,7 +158,7 @@ function HomeContent() {
       </SidebarMenu></SidebarContent>
       <SidebarFooter><div className="sidebar-note"><span className="small-icon"><LockKeyhole size={17}/></span><strong>Your privacy comes first.</strong><p>Your messages stay on this device during pattern checks.</p><button className="text-button privacy-trigger" onClick={() => setPrivacyOpen(true)}>Privacy &amp; data<ArrowUpRight size={13}/></button>{notificationsSupported && <button className="text-button privacy-trigger" onClick={() => { void enableNotifications(); }}>{notificationPermission === 'granted' ? 'Warning alerts are on' : notificationPermission === 'denied' ? 'Warning alerts blocked' : 'Enable warning alerts'}<ArrowUpRight size={13}/></button>}</div><div className="sidebar-bottom"><span className="local-avatar"><Shield size={17}/></span><div>Your personal space<small>Early access</small></div><span className="status-dot"/></div></SidebarFooter>
     </Sidebar>
-    <div className="workspace"><header className="topbar"><div className="breadcrumb"><SidebarTrigger className="mobile-menu"/><span>Your protection</span><ChevronRight size={14}/><strong>{viewLabels[view]}</strong></div><div className="topbar-right">{flags.offlineZeroDataBadge && <span style={{ fontSize: '0.73rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>⚡ 0.00 MB Offline Protected</span>}<select aria-label="Select region" value={local.country || 'NG'} onChange={e => handleCountryChange(e.target.value as CountryCode)} style={{ fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: 'pointer' }}>{SUPPORTED_COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}</select><select aria-label="Select guidance language" value={local.language} onChange={e => updateLocal(previous => ({ ...previous, language: e.target.value as SupportedLanguage }))} style={{ fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: 'pointer' }}>{LANGUAGES.map(lang => <option key={lang.id} value={lang.id}>{lang.nativeName}</option>)}</select>{flags.vendorTrustSeal && <button type="button" onClick={() => setVendorModalOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #10B981', background: '#ECFDF5', color: '#047857', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>✓ Trust Seal</button>}{flags.ussdSimulator && <button type="button" onClick={() => setUssdSimOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #6366F1', background: '#EEF2FF', color: '#4338CA', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>📱 *384*746#</button>}<SafetyPulse verdict={pulseVerdict} permission={notificationPermission} supported={notificationsSupported} onEnableAlerts={() => { void enableNotifications(); }}/><span className="beta-tag">EARLY ACCESS</span><span className="device-status"><span className="status-dot"/> On this device</span></div></header>
+    <div className="workspace"><header className="topbar"><div className="breadcrumb"><SidebarTrigger className="mobile-menu"/><span>Your protection</span><ChevronRight size={14}/><strong>{viewLabels[view]}</strong></div><div className="topbar-right">{flags.offlineZeroDataBadge && <span style={{ fontSize: '0.73rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '6px', background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>⚡ 0.00 MB Offline Protected</span>}<select aria-label="Select region" value={local.country || 'NG'} onChange={e => handleCountryChange(e.target.value as CountryCode)} style={{ fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: 'pointer' }}>{SUPPORTED_COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}</select><select aria-label="Select guidance language" value={local.language} onChange={e => updateLocal(previous => ({ ...previous, language: e.target.value as SupportedLanguage }))} style={{ fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: 'pointer' }}>{LANGUAGES.map(lang => <option key={lang.id} value={lang.id}>{lang.nativeName}</option>)}</select>{flags.vendorTrustSeal && <button type="button" onClick={() => setVendorModalOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #10B981', background: '#ECFDF5', color: '#047857', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>✓ Trust Seal</button>}{flags.ussdSimulator && <button type="button" onClick={() => setUssdSimOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #6366F1', background: '#EEF2FF', color: '#4338CA', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>📱 *384*746#</button>}<button type="button" onClick={() => setFakeAlertOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #EF4444', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>💳 Fake Alert</button><button type="button" onClick={() => setWhatsappBotOpen(true)} style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '6px', border: '1px solid #10B981', background: '#F0FDF4', color: '#059669', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>💬 WhatsApp Bot</button><SafetyPulse verdict={pulseVerdict} permission={notificationPermission} supported={notificationsSupported} onEnableAlerts={() => { void enableNotifications(); }}/><span className="beta-tag">EARLY ACCESS</span><span className="device-status"><span className="status-dot"/> On this device</span></div></header>
     <main id="main" className="main-content">
       {/* 1-Click Primary Bank / Wallet Emergency Quick Freeze Bar */}
       {flags.bankFreezeAndPnd && (
@@ -244,6 +248,30 @@ function HomeContent() {
               </div>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => setFakeAlertOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(239,68,68,0.15)', borderRadius: '8px' }}>💳</span>
+            <div>
+              <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Verify Bank Alert</strong>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Detect fake SMS &amp; reversal tricks</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setWhatsappBotOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(37,211,102,0.15)', borderRadius: '8px' }}>💬</span>
+            <div>
+              <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>WhatsApp Bot Guard</strong>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Forward scams &amp; QR mobile link</span>
+            </div>
+          </button>
         </div>
       )}
 
@@ -367,6 +395,14 @@ function HomeContent() {
     <MerchantDealModal
       isOpen={merchantDealOpen}
       onClose={() => setMerchantDealOpen(false)}
+    />
+    <FakeAlertModal
+      isOpen={fakeAlertOpen}
+      onClose={() => setFakeAlertOpen(false)}
+    />
+    <WhatsAppSimulatorModal
+      isOpen={whatsappBotOpen}
+      onClose={() => setWhatsappBotOpen(false)}
     />
   </SidebarProvider>;
 }

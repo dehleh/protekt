@@ -254,3 +254,14 @@ export function generateDealLink(
     bioSnippet,
   };
 }
+
+/**
+ * Looks up a vendor trust record by social handle or slug
+ */
+export function getVendorBySlug(slug: string): VendorTrustRecord | undefined {
+  const clean = normalizeVendorQuery(slug);
+  return KNOWN_TRUSTED_VENDORS.find(v => 
+    normalizeVendorQuery(v.handle) === clean ||
+    v.id.toLowerCase() === clean.toLowerCase()
+  );
+}

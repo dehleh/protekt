@@ -1,6 +1,6 @@
 import type { Verdict } from './scam-engine';
 
-export type SupportedLanguage = 'English' | 'Pidgin assist' | 'Hausa' | 'Yoruba' | 'Igbo';
+export type SupportedLanguage = 'English' | 'Pidgin assist' | 'Hausa' | 'Yoruba' | 'Igbo' | 'Swahili' | 'Zulu';
 
 export type VernacularGuidance = {
   label: string;
@@ -16,6 +16,8 @@ export const LANGUAGES: { id: SupportedLanguage; label: string; nativeName: stri
   { id: 'Hausa', label: 'Hausa', nativeName: 'Harshen Hausa' },
   { id: 'Yoruba', label: 'Yoruba', nativeName: 'Èdè Yorùbá' },
   { id: 'Igbo', label: 'Igbo', nativeName: 'Asụsụ Igbo' },
+  { id: 'Swahili', label: 'Swahili', nativeName: 'Kiswahili' },
+  { id: 'Zulu', label: 'Zulu', nativeName: 'isiZulu' },
 ];
 
 export const VERNACULAR_GUIDANCE: Record<SupportedLanguage, Record<Verdict, VernacularGuidance>> = {
@@ -231,6 +233,92 @@ export const VERNACULAR_GUIDANCE: Record<SupportedLanguage, Record<Verdict, Vern
       actionTips: [
         'Gbaa mbọ mara onye ị na-ezigara ego tupu ị pịa ziga.',
         'Ezi ụlọ akụ agaghị ajụ gị paswọọdụ ma ọ bụ koodu PIN gị mgbe ọ bụla.',
+      ],
+    },
+  },
+  Swahili: {
+    'likely-scam': {
+      label: 'Dalili za wazi za utapeli zimepatikana',
+      badge: 'Hatari Kubwa',
+      advice: 'Ujumbe huu una dalili kali za wizi na utapeli wa kidijitali. Usitume pesa, kodi ya siri (OTP), PIN ya benki au M-Pesa. Piga simu kwa benki au mhusika kwa nambari halali unayoijua.',
+      speechText: 'Onyo kali! Ujumbe huu una dalili za wazi za utapeli. Usitume pesa, namba ya siri, au kodi ya OTP. Simama na uthibitishe kwanza kabla ya kufanya chochote.',
+      actionTips: [
+        'Kamwe usitoe nambari yako ya siri (PIN) au kodi ya uthibitisho (OTP) ya M-Pesa.',
+        'Usifanye haraka kutuma pesa kwa akaunti usiyoijua kwa shinikizo la dharura.',
+        'Kama umeshatuma pesa, fungua Cyber SOS mara moja ili usaidike kufungia akaunti.',
+      ],
+    },
+    suspicious: {
+      label: 'Kuwa makini na thibitisha kwanza',
+      badge: 'Tahadhari',
+      advice: 'Kuna mambo yenye mashaka katika ujumbe huu. Thibitisha kwa umakini kabla ya kubofya kiungo (link) au kutuma malipo yoyote.',
+      speechText: 'Tahadhari. Kuna mambo yenye kutiliwa shaka hapa. Tulia na uhakikishe kabla ya kubonyeza viungo au kutuma pesa.',
+      actionTips: [
+        'Kagua nambari ya akaunti au Paybill moja kwa moja kwenye simu yako.',
+        'Epuka shinikizo la muda au vitisho vya kufungiwa akaunti.',
+      ],
+    },
+    uncertain: {
+      label: 'Taarifa zaidi zinahitajika',
+      badge: 'Haijabainika',
+      advice: 'Hakuna maelezo ya kutosha kutathmini usalama wa ujumbe huu. Tafadhali thibitisha moja kwa moja na watoa huduma wanaoaminika.',
+      speechText: 'Taarifa haitoshi kutoa uamuzi salama. Tafadhali kagua chanzo cha ujumbe wako kwa umakini.',
+      actionTips: [
+        'Weka ujumbe mzima au kagua kiungo kwa makini.',
+        'Usiamini ujumbe kwa sababu tu haujaonyesha onyo la haraka.',
+      ],
+    },
+    'no-signals': {
+      label: 'Hakuna dalili za wazi za hatari zilizopatikana',
+      badge: 'Endelea Kuwa Makini',
+      advice: 'Ukaguzi wetu haujaona dalili za wazi za wizi, lakini hiyo haimaanishi usalama wa asilimia mia moja. Kuwa mwangalifu kabla ya kutuma fedha.',
+      speechText: 'Hakuna viashiria vya wazi vya utapeli vilivyoonekana, lakini kuwa macho kabla ya kutuma fedha au taarifa zako.',
+      actionTips: [
+        'Daima thibitisha jina la mpokeaji kabla ya kuthibitisha malipo.',
+        'Benki halali kamwe haitakuuliza nambari yako ya siri au PIN.',
+      ],
+    },
+  },
+  Zulu: {
+    'likely-scam': {
+      label: 'Kutholwe izimpawu eziyingozi zobugebengu',
+      badge: 'Ingozi Enkulu',
+      advice: 'Lo mlayezo unezimpawu ezicacile zobugebengu bokweba imali. Ungalokothi uthumele imali, i-OTP, noma i-PIN yakho yasebhange. Shayela ibhange lakho ngenombolo oyiqinisekisile.',
+      speechText: 'Isexwayiso esikhulu! Lo mlayezo uyingozi yobugebengu. Ungathumeli imali, i-PIN, noma i-OTP yakho. Yima uqinisekise kuqala.',
+      actionTips: [
+        'Ungalokothi wabelane nge-OTP yakho noma i-PIN yakho yasebhange nanoma ubani.',
+        'Ungajahi ukuthumela imali ngenxa yokusatshiswa noma ukuxhamazeliswa.',
+        'Uma usuthumele imali, vula i-Cyber SOS ngokushesha ukuze uvale i-akhawunti.',
+      ],
+    },
+    suspicious: {
+      label: 'Qaphela uqinisekise ngaphambi kokuthatha isinyathelo',
+      badge: 'Isexwayiso',
+      advice: 'Kukhona okusolisayo kulo mlayezo. Qinisekisa kahle ngaphambi kokucofa isixhumanisi (link) noma ukuthumela imali.',
+      speechText: 'Qaphela. Kukhona okusolisayo kulo mlayezo. Yima kancane uhlole ngaphambi kokwenza inkokhelo.',
+      actionTips: [
+        'Bheka inombolo ye-akhawunti ngqo kuhlelo lwakho lokusebenza lwasebhange.',
+        'Gwema ukwenza izinqumo ngokuxhamazela ngenxa yezinsongo zokucishwa kwe-akhawunti.',
+      ],
+    },
+    uncertain: {
+      label: 'Kudingeka imininingwane eyengeziwe',
+      badge: 'Akwaziwa Kahle',
+      advice: 'Ulwazi alwanele ukunquma ngokuphepha kwalo mlayezo. Sicela uzihlolele wena ngokuxhumana nabasemthethweni.',
+      speechText: 'Ulwazi alwanele ukwahlulela ngokuphepha. Sicela uzihlolele wena.',
+      actionTips: [
+        'Namathisela umbhalo ogcwele noma uhlole isixhumanisi ngokucophelela.',
+        'Ungacabangi ukuthi kuphephile ngoba nje kungenazixwayiso ezivelile.',
+      ],
+    },
+    'no-signals': {
+      label: 'Azikho izimpawu eziyingozi ezitholakele',
+      badge: 'Hlala Uqaphile',
+      advice: 'Ukuhlola kwethu akutholanga zimpawu ezisolisayo, kodwa lokho akusho ukuthi kuphephe ngokuphelele. Hlala uqaphile ngaphambi kokudlulisa imali.',
+      speechText: 'Azikho izimpawu zobugebengu ezitholakele, kodwa hlala uqaphile ngaphambi kokuthumela imali.',
+      actionTips: [
+        'Hlale uqinisekisa igama lomamukeli ngaphambi kokuphothula inkokhelo.',
+        'Ibhange langempela alisoze lacela i-PIN noma amaphasiwedi akho.',
       ],
     },
   },

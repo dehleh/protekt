@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { verifyVendor, KNOWN_TRUSTED_VENDORS, VendorTrustRecord } from '../lib/vendor-trust';
 
 interface VendorTrustModalProps {
@@ -191,35 +192,45 @@ export function VendorTrustModal({ isOpen, onClose, initialQuery = '' }: VendorT
               </div>
 
               {/* Verified Seller Bio & Embed Generator (Viral Merchant Trust) */}
-              <div className="p-3 rounded-xl bg-neutral-900/90 border border-emerald-500/30 space-y-2">
+              <div className="p-3.5 rounded-xl bg-neutral-900/90 border border-emerald-500/30 space-y-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-semibold text-emerald-400">Merchant Growth &amp; Trust Tools:</span>
-                  <span className="text-[10px] text-neutral-400">For Instagram Bio &amp; Website</span>
+                  <span className="text-[10px] text-neutral-400">For Instagram Bio, WhatsApp &amp; Storefront</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
                     onClick={async () => {
-                      const bioText = `🛡️ Verified by SHOMAR Trust Seal (${selectedVendor.regNumber}) • protect.shomar.africa/seal/${selectedVendor.handle}`;
+                      const bioText = `🛡️ Verified by SHOMAR Trust Seal (${selectedVendor.regNumber}) • /v/${selectedVendor.handle.replace(/^@/, '')}`;
                       await navigator.clipboard.writeText(bioText);
                       setBioCopied(true);
                       setTimeout(() => setBioCopied(false), 2500);
                     }}
-                    className="py-2 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs text-neutral-200 border border-neutral-700 flex items-center justify-center gap-1.5 transition active:scale-95"
+                    className="py-2 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs text-neutral-200 border border-neutral-700 flex items-center justify-center gap-1.5 transition active:scale-95"
                   >
-                    <span>{bioCopied ? '✓ Copied Bio Text!' : '📋 Copy Bio Trust Link'}</span>
+                    <span>{bioCopied ? '✓ Copied Bio Link!' : '📋 Copy Bio Link'}</span>
                   </button>
 
                   <button
                     onClick={async () => {
-                      const embedCode = `<a href="https://protect.shomar.africa/seal/${selectedVendor.handle}" target="_blank"><img src="https://protect.shomar.africa/badges/trust-seal.svg" alt="SHOMAR Verified African Vendor" /></a>`;
+                      const embedCode = `<a href="https://shomar.protect/v/${selectedVendor.handle.replace(/^@/, '')}" target="_blank"><img src="https://shomar.protect/trust-seal-badge.svg" alt="SHOMAR Verified African Social Merchant" /></a>`;
                       await navigator.clipboard.writeText(embedCode);
                       setEmbedCopied(true);
                       setTimeout(() => setEmbedCopied(false), 2500);
                     }}
-                    className="py-2 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs text-neutral-200 border border-neutral-700 flex items-center justify-center gap-1.5 transition active:scale-95"
+                    className="py-2 px-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs text-neutral-200 border border-neutral-700 flex items-center justify-center gap-1.5 transition active:scale-95"
                   >
-                    <span>{embedCopied ? '✓ Copied Embed Code!' : '🌐 Copy Website Badge'}</span>
+                    <span>{embedCopied ? '✓ Copied Embed!' : '🌐 Copy Web Badge'}</span>
                   </button>
+
+                  <a
+                    href={`/v/${selectedVendor.handle.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs text-white border border-emerald-500 flex items-center justify-center gap-1.5 transition font-semibold text-center no-underline"
+                  >
+                    <span>View Live Seal</span>
+                    <ExternalLink size={12} />
+                  </a>
                 </div>
               </div>
 
