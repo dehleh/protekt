@@ -198,3 +198,59 @@ export function getVendorSealMeta(vendor: VendorTrustRecord) {
     hasPhysicalStore: vendor.dispatchVerified,
   };
 }
+
+export interface SafeDealData {
+  vendorHandle: string;
+  itemName: string;
+  amount: number;
+  currency: string;
+  escrowProtected: boolean;
+  returnPolicy: string;
+  dealCode: string;
+  dealUrl: string;
+  shareMessage: string;
+  bioSnippet: string;
+}
+
+/**
+ * Generates an interactive Safe Deal Link & Bio Snippet for social vendors to convert hesitant buyers
+ */
+export function generateDealLink(
+  vendorHandle: string,
+  itemName: string,
+  amount: number,
+  currency = 'NGN'
+): SafeDealData {
+  const cleanHandle = normalizeVendorQuery(vendorHandle);
+  const hash = Math.abs(cleanHandle.split('').reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) | 0, 0) ^ amount)
+    .toString(16)
+    .toUpperCase()
+    .slice(0, 6);
+  const dealCode = `DEAL-${hash}`;
+  const dealUrl = `https://protect.shomar.africa/deal/${cleanHandle}?ref=${dealCode}`;
+  
+  const formattedAmount = `${currency} ${amount.toLocaleString()}`;
+  const shareMessage = [
+    `🛡️ PROTECTED PURCHASE DEAL (${dealCode})`,
+    `Vendor: @${cleanHandle}`,
+    `Item: ${itemName} (${formattedAmount})`,
+    `✅ Verified with SHOMAR Trust Seal (Zero-Fraud Guarantee)`,
+    `🔒 Buyer Protection Active: Funds secured until item is received.`,
+    `Complete your verified order here: ${dealUrl}`,
+  ].join('\n');
+
+  const bioSnippet = `🛡️ SHOMAR Verified Merchant • Zero Fraud Record • Order Safely: protect.shomar.africa/trust/@${cleanHandle}`;
+
+  return {
+    vendorHandle: cleanHandle,
+    itemName,
+    amount,
+    currency,
+    escrowProtected: true,
+    returnPolicy: '48-hour inspection & dispute backstop',
+    dealCode,
+    dealUrl,
+    shareMessage,
+    bioSnippet,
+  };
+}

@@ -5,6 +5,7 @@ import type { Assessment } from '@/lib/scam-engine';
 import { VERNACULAR_GUIDANCE, type SupportedLanguage } from '@/lib/vernacular';
 import { EvidenceSlipModal } from './EvidenceSlipModal';
 import { FamilyBroadcastModal } from './FamilyBroadcastModal';
+import { ScamBusterCardModal } from './ScamBusterCardModal';
 
 export function CheckResult({ result, language = 'English', onSOS, onClear }: { result: Assessment; language?: SupportedLanguage; onSOS: () => void; onClear: () => void }) {
   const [copied, setCopied] = useState(false);
@@ -13,6 +14,7 @@ export function CheckResult({ result, language = 'English', onSOS, onClear }: { 
   const [speechSupported, setSpeechSupported] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [scamBusterOpen, setScamBusterOpen] = useState(false);
 
   useEffect(() => {
     setSpeechSupported(typeof window !== 'undefined' && 'speechSynthesis' in window);
@@ -236,11 +238,20 @@ export function CheckResult({ result, language = 'English', onSOS, onClear }: { 
         <button className="text-button" onClick={() => setBroadcastOpen(true)} style={{ color: '#DC2626', fontWeight: 600 }}>
           <Users size={14} />🚨 Alert Family &amp; Circle
         </button>
+        {(result.verdict === 'likely-scam' || result.verdict === 'suspicious') && (
+          <button
+            className="text-button"
+            onClick={() => setScamBusterOpen(true)}
+            style={{ color: '#EA580C', fontWeight: 700 }}
+          >
+            📲 Share WhatsApp Scam Card
+          </button>
+        )}
       </div>
       {copyError && <p role="status">Copying isn’t available here. Use Save guidance instead.</p>}
       <p className="result-limit">Pattern checks only. No account access, phone scanning, or live website visit is performed.</p>
 
-      {/* 1-Tap Incident Slip & Family Broadcast Modals */}
+      {/* 1-Tap Incident Slip, Family Broadcast & WhatsApp Scam Buster Modals */}
       <EvidenceSlipModal
         isOpen={evidenceOpen}
         onClose={() => setEvidenceOpen(false)}
@@ -250,6 +261,13 @@ export function CheckResult({ result, language = 'English', onSOS, onClear }: { 
         isOpen={broadcastOpen}
         onClose={() => setBroadcastOpen(false)}
         threatDetail={result.summary}
+      />
+      <ScamBusterCardModal
+        isOpen={scamBusterOpen}
+        onClose={() => setScamBusterOpen(false)}
+        account={result.summary.match(/\b\d{10}\b/)?.[0] || 'Flagged Entity'}
+        bankName="Verified Bank/Fintech"
+        modus={result.title}
       />
     </section>
   );

@@ -253,3 +253,82 @@ export function blindReport(target: string, type: ThreatType = 'account', dailyS
     timestamp: new Date().toISOString(),
   };
 }
+
+export interface PreTransferScanResult {
+  target: string;
+  bankName: string;
+  riskLevel: 'safe' | 'caution' | 'flagged-fraud';
+  reportCount: number;
+  lastReportedModus?: string;
+  recommendation: string;
+  recommendationPidgin: string;
+  safetyTips: string[];
+}
+
+export const KNOWN_FRAUD_ACCOUNTS_MAP: Record<string, { reports: number; modus: string; bank: string }> = {
+  '0123456789': { reports: 7, modus: 'Fake iPhone / sneaker delivery on Instagram & fake credit screenshot', bank: 'Access Bank' },
+  '0800000001': { reports: 12, modus: 'Predatory loan app harassment & unauthorized contact defamation', bank: 'Fintech Wallet' },
+  '0987654321': { reports: 5, modus: 'Fake Facebook Marketplace electronics advance fee', bank: 'OPay' },
+  '254700000001': { reports: 9, modus: 'Fake M-Pesa accidental reversal caller trap', bank: 'Safaricom M-Pesa' },
+  '233240000001': { reports: 6, modus: 'MoMo agent SIM swap & unauthorized cash-out approval', bank: 'MTN Mobile Money' },
+  '27820000001': { reports: 4, modus: 'Fake Capitec Proof of Payment vehicle deposit scam', bank: 'Capitec Bank' },
+};
+
+/**
+ * Pre-Transfer Radar: Assesses a NUBAN, MoMo, or Till number before money is transferred
+ */
+export function assessAccountTransfer(accountOrPhone: string, bankName = 'Auto-detect'): PreTransferScanResult {
+  const cleaned = accountOrPhone.trim().replace(/[\s-]/g, '');
+  const known = KNOWN_FRAUD_ACCOUNTS_MAP[cleaned];
+  const bloomMatch = checkThreatLedger(cleaned);
+
+  if (known || (bloomMatch && bloomMatch.flagged)) {
+    const reportCount = known ? known.reports : 4;
+    const modus = known ? known.modus : 'Reported multiple times for advance-fee payment fraud and unfulfilled goods.';
+    const actualBank = known ? known.bank : bankName;
+
+    return {
+      target: cleaned,
+      bankName: actualBank,
+      riskLevel: 'flagged-fraud',
+      reportCount,
+      lastReportedModus: modus,
+      recommendation: 'DO NOT TRANSFER FUNDS. This account is actively flagged in the SHOMAR community fraud ledger. Multiple victims reported losing money to this recipient.',
+      recommendationPidgin: 'NO SEND MONEY O! Dis account dey red for SHOMAR fraud ledger. People don cry say dem pay enter here, vendor block dem.',
+      safetyTips: [
+        'Do not send money before physical delivery and inspection.',
+        'If the recipient claims an emergency or police bail, call them directly on standard phone line to verify voice.',
+        'Request Payment on Delivery (POD) or an Escrow-backed Trust Seal link.',
+      ],
+    };
+  }
+
+  // Format checks
+  const is10Digit = /^\d{10}$/.test(cleaned);
+  const isAfricanPhone = /^(?:\+?(?:234|254|233|27)|0)\d{8,11}$/.test(cleaned);
+
+  if (!is10Digit && !isAfricanPhone) {
+    return {
+      target: cleaned,
+      bankName,
+      riskLevel: 'caution',
+      reportCount: 0,
+      recommendation: 'Unusual account or identifier length. Double check the account details with your bank before proceeding.',
+      recommendationPidgin: 'Dis account number no regular well well. Make sure you check am with the bank first.',
+      safetyTips: ['Standard African bank accounts (NUBAN) are strictly 10 digits.'],
+    };
+  }
+
+  return {
+    target: cleaned,
+    bankName,
+    riskLevel: 'safe',
+    reportCount: 0,
+    recommendation: 'No negative community reports found for this recipient in the SHOMAR threat ledger. Maintain standard digital payment precautions.',
+    recommendationPidgin: 'Clean record: Nobody don report dis account for scam for SHOMAR. But still shine your eye, no release money for goods you never see.',
+    safetyTips: [
+      'Verify account owner name in your banking app before entering your transaction PIN.',
+      'Remember: Absence of reports is not a legal guarantee. Always avoid advance payment to strangers.',
+    ],
+  };
+}

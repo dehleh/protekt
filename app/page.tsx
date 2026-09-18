@@ -19,6 +19,11 @@ import { SafetyPulse } from '@/components/SafetyPulse';
 import { VendorTrustModal } from '@/components/VendorTrustModal';
 import { UssdSimulator } from '@/components/UssdSimulator';
 import { PocketCyberDrill } from '@/components/PocketCyberDrill';
+import { PreTransferRadar } from '@/components/PreTransferRadar';
+import { ScamBusterCardModal } from '@/components/ScamBusterCardModal';
+import { BankFreezeModal } from '@/components/BankFreezeModal';
+import { SocialVaultModal } from '@/components/SocialVaultModal';
+import { MerchantDealModal } from '@/components/MerchantDealModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { STORAGE_KEY, emptyState, parseLocalState, historyEntry, toggleItem, type LocalState, type CountryCode } from '@/lib/local-state';
@@ -51,6 +56,12 @@ export default function Home() {
   const { supported: notificationsSupported, permission: notificationPermission, enable: enableNotifications, notify } = useBrowserNotifications();
   const [vendorModalOpen, setVendorModalOpen] = useState(false);
   const [ussdSimOpen, setUssdSimOpen] = useState(false);
+  const [radarOpen, setRadarOpen] = useState(false);
+  const [scamBusterOpen, setScamBusterOpen] = useState(false);
+  const [scamBusterData, setScamBusterData] = useState({ account: '', bank: '', modus: '' });
+  const [bankFreezeOpen, setBankFreezeOpen] = useState(false);
+  const [socialVaultOpen, setSocialVaultOpen] = useState(false);
+  const [merchantDealOpen, setMerchantDealOpen] = useState(false);
   const completed = protectionTasks.filter(task => local.checklist.includes(task.id)).length;
   const nextTask = protectionTasks.find(task => !local.checklist.includes(task.id));
   const pulseVerdict: Verdict | null = result?.verdict ?? local.history[0]?.verdict ?? null;
@@ -163,6 +174,57 @@ export default function Home() {
         </div>
       </div>
 
+      {/* African Indispensable High-Impact Growth Tray */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.6rem', marginBottom: '1.25rem' }}>
+        <button
+          type="button"
+          onClick={() => setRadarOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+        >
+          <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(245,158,11,0.15)', borderRadius: '8px' }}>📡</span>
+          <div>
+            <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Pre-Transfer Radar</strong>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Check NUBAN / MoMo before paying</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSocialVaultOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+        >
+          <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(168,85,247,0.15)', borderRadius: '8px' }}>🎬</span>
+          <div>
+            <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Creator &amp; VIP Vault</strong>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Sponsorship infostealer &amp; ##002# lock</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setBankFreezeOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+        >
+          <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(239,68,68,0.15)', borderRadius: '8px' }}>⚡</span>
+          <div>
+            <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>15-Min PND Recall</strong>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Demand freeze on scammer bank</span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMerchantDealOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#0f172a', border: '1px solid #334155', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+        >
+          <span style={{ fontSize: '1.2rem', padding: '0.3rem', background: 'rgba(16,185,129,0.15)', borderRadius: '8px' }}>🛍️</span>
+          <div>
+            <strong style={{ fontSize: '0.8rem', display: 'block', color: '#f8fafc' }}>Safe Deal Link</strong>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Boost sales with verified bio seal</span>
+          </div>
+        </button>
+      </div>
+
       <div className={view === 'check' ? 'page-heading' : 'page-heading view-heading'}><div><div className="eyebrow"><span/> A SAFER DIGITAL EVERYDAY</div><h1 ref={headingAnchor} tabIndex={-1}>{view === 'check' ? <>A second opinion.<br className="mobile-break"/> Before your next click.</> : titles[view]}</h1><p>{subtitles[view]}</p></div><span className="heading-mark"><ShieldCheck size={36} strokeWidth={1.3}/></span></div>
     {storageWarning && <p className="storage-warning" role="status">{storageWarning}</p>}{view === 'check' && <><div className="main-grid"><section className="check-panel panel">
       {/* 2-Click Scenario Decision Tiles */}
@@ -253,6 +315,35 @@ export default function Home() {
     <AlertDialog open={confirmClear !== null} onOpenChange={open => { if (!open) setConfirmClear(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{confirmClear === 'all' ? 'Clear your saved SHOMAR data?' : 'Clear your recent checks?'}</AlertDialogTitle><AlertDialogDescription>{confirmClear === 'all' ? 'This removes your protection checklist, family plan, app overview, recovery progress, and check history from this browser. You can start again at any time.' : 'This removes the saved check summaries from this browser. Your protection, family, app overview, and recovery checklists will stay.'}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Keep my data</AlertDialogCancel><AlertDialogAction onClick={clearSavedData}>Clear data</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <VendorTrustModal isOpen={vendorModalOpen} onClose={() => setVendorModalOpen(false)}/>
     <UssdSimulator isOpen={ussdSimOpen} onClose={() => setUssdSimOpen(false)}/>
+    <PreTransferRadar
+      isOpen={radarOpen}
+      onClose={() => setRadarOpen(false)}
+      onOpenScamBuster={(account, bank, modus) => {
+        setScamBusterData({ account, bank, modus });
+        setScamBusterOpen(true);
+      }}
+      onOpenDealModal={() => setMerchantDealOpen(true)}
+    />
+    <ScamBusterCardModal
+      isOpen={scamBusterOpen}
+      onClose={() => setScamBusterOpen(false)}
+      account={scamBusterData.account}
+      bankName={scamBusterData.bank}
+      modus={scamBusterData.modus}
+    />
+    <BankFreezeModal
+      isOpen={bankFreezeOpen}
+      onClose={() => setBankFreezeOpen(false)}
+      country={activeCountry}
+    />
+    <SocialVaultModal
+      isOpen={socialVaultOpen}
+      onClose={() => setSocialVaultOpen(false)}
+    />
+    <MerchantDealModal
+      isOpen={merchantDealOpen}
+      onClose={() => setMerchantDealOpen(false)}
+    />
   </SidebarProvider>;
 }
 

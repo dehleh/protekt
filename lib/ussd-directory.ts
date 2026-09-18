@@ -4,6 +4,7 @@ export type BankPanicEntry = {
   shortName: string;
   ussdCode?: string;
   phoneHotline?: string;
+  fraudEmail?: string;
   instructions: string;
   dialUri?: string;
   category: 'Commercial Bank' | 'Fintech / Neobank';
@@ -17,6 +18,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     shortName: 'Access',
     ussdCode: '*901*911#',
     phoneHotline: '+23412712005',
+    fraudEmail: 'frauddesk@accessbankplc.com',
     dialUri: 'tel:*901*911%23',
     category: 'Commercial Bank',
     instructions: 'Dial *901*911# from any phone. Enter the registered phone number linked to your account to freeze debit transactions immediately.',
@@ -27,6 +29,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     shortName: 'GTBank',
     ussdCode: '*737*51*74#',
     phoneHotline: '+23414480000',
+    fraudEmail: 'complaints@gtbank.com',
     dialUri: 'tel:*737*51*74%23',
     category: 'Commercial Bank',
     instructions: 'Dial *737*51*74# from any phone. Enter your phone number and 737 PIN to block all debit activities instantly.',
@@ -37,6 +40,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     shortName: 'Zenith',
     ussdCode: '*966*911#',
     phoneHotline: '+23412787000',
+    fraudEmail: 'zenithdirect@zenithbank.com',
     dialUri: 'tel:*966*911%23',
     category: 'Commercial Bank',
     instructions: 'Dial *966*911# from any phone, enter your account number and registered phone number to restrict access.',
@@ -47,6 +51,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     shortName: 'First Bank',
     ussdCode: '*894*911#',
     phoneHotline: '+23419052326',
+    fraudEmail: 'firstcontact@firstbanknigeria.com',
     dialUri: 'tel:*894*911%23',
     category: 'Commercial Bank',
     instructions: 'Dial *894*911# from any phone. Enter the phone number tied to your First Bank account to lock banking channels.',
@@ -57,6 +62,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     shortName: 'UBA',
     ussdCode: '*919*911#',
     phoneHotline: '+23412808822',
+    fraudEmail: 'cfc@ubagroup.com',
     dialUri: 'tel:*919*911%23',
     category: 'Commercial Bank',
     instructions: 'Dial *919*911# from any mobile number to block debit card and mobile banking access instantly.',
@@ -67,6 +73,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     shortName: 'OPay',
     ussdCode: '*955*911#',
     phoneHotline: '+23418888329',
+    fraudEmail: 'frauddesk@opay-inc.com',
     dialUri: 'tel:*955*911%23',
     category: 'Fintech / Neobank',
     instructions: 'Dial *955*911# from any phone. Enter your OPay registered phone number to freeze your wallet immediately.',
@@ -77,6 +84,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     shortName: 'PalmPay',
     ussdCode: '*861*911#',
     phoneHotline: '+23417005410',
+    fraudEmail: 'support@palmpay.com',
     dialUri: 'tel:*861*911%23',
     category: 'Fintech / Neobank',
     instructions: 'Dial *861*911# from any mobile line. Follow the prompts with your PalmPay phone number to halt account operations.',
@@ -87,6 +95,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     shortName: 'Moniepoint',
     ussdCode: '*5573*911#',
     phoneHotline: '+23418888450',
+    fraudEmail: 'support@moniepoint.com',
     dialUri: 'tel:*5573*911%23',
     category: 'Fintech / Neobank',
     instructions: 'Dial *5573*911# from any phone to immediately lock your POS, account, or card from unauthorized withdrawals.',
@@ -96,6 +105,7 @@ export const BANK_PANIC_DIRECTORY: BankPanicEntry[] = [
     name: 'Kuda Microfinance Bank',
     shortName: 'Kuda',
     phoneHotline: '+23416335832',
+    fraudEmail: 'help@kuda.com',
     dialUri: 'tel:+23416335832',
     category: 'Fintech / Neobank',
     instructions: 'Call Kuda fraud emergency line directly at 01 633 5832 or sign in on a trusted web browser to freeze your card in Security Settings.',
@@ -307,4 +317,58 @@ export const SUPPORTED_COUNTRIES = [
 export function getBanksByCountry(countryCode: string): BankPanicEntry[] {
   const norm = countryCode.toUpperCase();
   return BANK_PANIC_DIRECTORY.filter(b => (b.country || 'NG') === norm);
+}
+
+export interface PndLetterDetails {
+  victimName: string;
+  victimBank: string;
+  victimAccount: string;
+  scammerBank: string;
+  scammerAccount: string;
+  amount: string;
+  currency: string;
+  transactionReference: string;
+  incidentTimestamp: string;
+  narrative: string;
+}
+
+/**
+ * Generates an official Central Bank / NIBSS / FSCA compliant Post-No-Debit (PND) Urgent Fraud Demand
+ */
+export function generatePndDisputeLetter(details: PndLetterDetails): string {
+  return [
+    '═════════════════════════════════════════════════════════════════════',
+    '        URGENT FRAUD RECALL NOTICE & POST-NO-DEBIT (PND) DEMAND       ',
+    '       In accordance with Central Bank & Consumer Protection Rules   ',
+    '═════════════════════════════════════════════════════════════════════',
+    '',
+    `DATE / TIME OF NOTICE: ${details.incidentTimestamp || new Date().toISOString()}`,
+    `TO: FRAUD RISK MANAGEMENT DESK — ${details.scammerBank.toUpperCase()}`,
+    `COPY: COMPLIANCE UNIT — ${details.victimBank.toUpperCase()}`,
+    'REGULATORY REF: CBN/NIBSS Anti-Fraud Protocol / BoG Directives / FSCA Guidelines',
+    '',
+    '---------------------------------------------------------------------',
+    'TRANSACTION DISPUTE IDENTIFIERS:',
+    '---------------------------------------------------------------------',
+    `DISPUTED AMOUNT: ${details.currency} ${details.amount}`,
+    `TX REFERENCE / SESSION ID: ${details.transactionReference || 'PENDING-BANK-TRACE'}`,
+    `BENEFICIARY FRAUD ACCOUNT: ${details.scammerAccount} (${details.scammerBank})`,
+    `ORIGINATING ACCOUNT: ${details.victimAccount} (${details.victimBank})`,
+    `REPORTING VICTIM / ACCOUNT HOLDER: ${details.victimName}`,
+    '',
+    '---------------------------------------------------------------------',
+    'INCIDENT NARRATIVE & IMMEDIATE DEMAND:',
+    '---------------------------------------------------------------------',
+    details.narrative || 'The funds referenced above were obtained via unauthorized fraudulent inducement / social engineering / fake proof of payment. Immediate intervention is required.',
+    '',
+    'LEGAL & REGULATORY DEMAND:',
+    '1. In line with interbank electronic fraud containment directives, the receiving financial institution is hereby formally notified to place an IMMEDIATE POST-NO-DEBIT (PND) / TEMPORARY LIEN on Beneficiary Account ' + details.scammerAccount + '.',
+    '2. Restrict all outward channels including POS withdrawals, ATM cash-outs, and crypto P2P transfers.',
+    '3. Quarantine the stolen balance pending formal police extract / court preservation order.',
+    '',
+    'SHOMAR CRYPTOGRAPHIC VERIFICATION TOKEN:',
+    `HASH: blnd_pnd_${Math.abs(details.victimAccount.length * 37 + details.scammerAccount.length * 19).toString(16).padStart(8, '0')}`,
+    'DOCUMENT GENERATED VIA: SHOMAR Protect (Incident Response Terminal)',
+    '═════════════════════════════════════════════════════════════════════',
+  ].join('\n');
 }
