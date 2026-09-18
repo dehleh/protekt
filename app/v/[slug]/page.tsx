@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ShieldCheck, ShieldAlert, Building2, MapPin, CheckCircle2, ArrowRight, ExternalLink, PhoneCall, AlertTriangle } from 'lucide-react';
 import { getVendorBySlug, KNOWN_TRUSTED_VENDORS } from '@/lib/vendor-trust';
+import { getStoredVendor } from '@/lib/db';
 
 export async function generateStaticParams() {
   return KNOWN_TRUSTED_VENDORS.map((v) => ({
@@ -15,7 +16,7 @@ interface PageProps {
 export default async function VendorTrustProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
-  const vendor = getVendorBySlug(decodedSlug);
+  const vendor = (await getStoredVendor(decodedSlug)) || getVendorBySlug(decodedSlug);
 
   return (
     <main style={{ minHeight: '100vh', background: '#0a0f1d', color: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif', padding: '2rem 1rem' }}>

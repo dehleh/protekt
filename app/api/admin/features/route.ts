@@ -7,15 +7,21 @@ import type {
   FeatureFlagKey,
   FeaturePreset,
 } from '../../../../lib/feature-flags.ts';
-
-// In-memory server-side feature flags state
-let serverFeatureFlags: FeatureFlags = { ...DEFAULT_FEATURE_FLAGS };
+import {
+  getStoredFeatureFlags,
+  saveStoredFeatureFlags,
+  logAdminAction,
+  isDbActive,
+} from '../../../../lib/db.ts';
 
 export async function GET() {
+  const flags = await getStoredFeatureFlags();
+
   return Response.json({
     success: true,
-    flags: serverFeatureFlags,
+    flags,
     presets: Object.keys(FEATURE_PRESETS),
+    database: isDbActive() ? 'postgresql-connected' : 'resilient-in-memory',
     updatedAt: new Date().toISOString(),
   }, {
     headers: {
@@ -32,40 +38,54 @@ export async function POST(req: Request) {
       return Response.json({ success: false, error: 'Invalid payload' }, { status: 400 });
     }
 
+    const currentFlags = await getStoredFeatureFlags();
+
     // 1. Handle preset selection
     if (typeof body.preset === 'string' && body.preset in FEATURE_PRESETS) {
       const presetName = body.preset as FeaturePreset;
-      serverFeatureFlags = { ...FEATURE_PRESETS[presetName].flags };
+      const newFlags = { ...FEATURE_PRESETS[presetName].flags };
+      await saveStoredFeatureFlags(newFlags);
+      await logAdminAction('apply_preset', 'admin', { preset: presetName });
+
       return Response.json({
         success: true,
         message: `Applied preset: ${presetName}`,
-        flags: serverFeatureFlags,
+        flags: newFlags,
+        database: isDbActive() ? 'postgresql-persisted' : 'resilient-in-memory',
       });
     }
 
     // 2. Handle partial or full flag updates
     if (body.flags && typeof body.flags === 'object') {
-      const updated: Record<string, boolean> = { ...serverFeatureFlags };
+      const updated: Record<string, boolean> = { ...currentFlags };
       for (const key of Object.keys(DEFAULT_FEATURE_FLAGS) as FeatureFlagKey[]) {
         if (typeof body.flags[key] === 'boolean') {
           updated[key] = body.flags[key];
         }
       }
-      serverFeatureFlags = (updated as unknown) as FeatureFlags;
+      const finalFlags = (updated as unknown) as FeatureFlags;
+      await saveStoredFeatureFlags(finalFlags);
+      await logAdminAction('update_flags', 'admin', { flags: body.flags });
+
       return Response.json({
         success: true,
         message: 'Updated feature flags successfully',
-        flags: serverFeatureFlags,
+        flags: finalFlags,
+        database: isDbActive() ? 'postgresql-persisted' : 'resilient-in-memory',
       });
     }
 
     // 3. Reset defaults
     if (body.reset === true) {
-      serverFeatureFlags = { ...DEFAULT_FEATURE_FLAGS };
+      const resetFlags = { ...DEFAULT_FEATURE_FLAGS };
+      await saveStoredFeatureFlags(resetFlags);
+      await logAdminAction('reset_flags', 'admin', {});
+
       return Response.json({
         success: true,
         message: 'Reset to default feature flags',
-        flags: serverFeatureFlags,
+        flags: resetFlags,
+        database: isDbActive() ? 'postgresql-persisted' : 'resilient-in-memory',
       });
     }
 
