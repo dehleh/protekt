@@ -25,9 +25,9 @@ export function ShomarBrandLogo({
       className={className}
       aria-label="SHOMAR Monogram Mark"
     >
-      {/* Precision polygon replicating the folded geometric planar "S" */}
+      {/* Precision 10-point folded geometric 'S' monogram */}
       <path
-        d="M31.5 28.5L68.5 24.5L69.5 39.5L47.5 41.5L70.5 52.5L51.5 71.5L65.5 70.5L62.5 84.5L33.5 77.5L30.5 64.5L52.5 58.5L30.5 47.5L31.5 28.5Z"
+        d="M90.1 0L3.2 7L0 43L50 62L1.2 76.3L7 100L88 76.3L94.7 52L41.8 32.2L92.4 27.5Z"
         fill={color}
       />
     </svg>

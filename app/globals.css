@@ -154,3 +154,38 @@ svg { flex-shrink: 0; }
 @media(max-width:1190px){.app-overview-layout{grid-template-columns:minmax(0,1.7fr) minmax(250px,1fr)}.app-overview-panel{padding:23px}.app-scope-card,.selected-apps-card{padding:21px}}
 @media(max-width:1020px){.app-overview-layout{grid-template-columns:1fr}.app-overview-side{grid-template-columns:1.2fr 1fr}.app-overview-note{grid-column:1/-1}}
 @media(max-width:620px){.app-overview-side{grid-template-columns:1fr}.app-overview-note{grid-column:auto}.app-overview-panel{padding:21px}.app-filter-bar{overflow-x:auto;flex-wrap:nowrap;padding-bottom:11px;scrollbar-width:none}.app-filter-bar::-webkit-scrollbar{display:none}.app-filter{white-space:nowrap}.app-catalog-row{gap:10px;padding:14px 0}.app-catalog-row.selected{margin:0 -7px;padding-left:9px;padding-right:7px}.app-category-icon{width:36px;height:37px}.app-catalog-copy label strong{font-size:.875rem}.app-catalog-copy label span{font-size:.75rem}.app-catalog-meta a{font-size:.6875rem}.app-catalog-meta{gap:8px}.app-overview-panel .section-heading{align-items:flex-start}.app-overview-panel .count-badge{font-size:.75rem}}
+
+/* Decluttered Modern Topbar & Navigation */
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.locale-select-pill { font-family: var(--font-poppins); font-size: 0.8rem; font-weight: 600; padding: 6px 10px; border-radius: 8px; border: 1px solid #DCE3EE; background: #FFFFFF; color: #1E293B; cursor: pointer; outline: none; transition: border-color 0.15s; }
+.locale-select-pill:focus { border-color: #0000FF; }
+.offline-safe-badge { font-family: var(--font-poppins); font-size: 0.74rem; font-weight: 650; padding: 5px 10px; border-radius: 9999px; background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.quick-freeze-action-btn { font-family: var(--font-poppins); font-size: 0.78rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; border: 1px solid #FF0036; background: #FEF2F2; color: #FF0036; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.18s ease; white-space: nowrap; }
+.quick-freeze-action-btn:hover { background: #FF0036; color: #FFFFFF; box-shadow: 0 4px 12px rgba(255, 0, 54, 0.25); }
+
+/* Specialized Fraud Defense Tools Grid */
+.advanced-defense-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid #E6EBF3; }
+.defense-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.defense-kicker { font-size: 0.75rem; letter-spacing: 1.5px; font-weight: 700; color: #0000FF; display: block; margin-bottom: 4px; }
+.defense-header h2 { font-size: 1.35rem; font-weight: 700; color: #0C0C0C; letter-spacing: -0.4px; }
+.defense-header p { font-size: 0.875rem; color: #64748B; margin-top: 4px; }
+.defense-country-pill { font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #EEF2FF; color: #0000FF; border: 1px solid #C7D2FE; }
+.defense-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 1024px) { .defense-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .defense-grid { grid-template-columns: 1fr; } }
+.defense-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 16px; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02); }
+.defense-card:hover { border-color: #0000FF; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 255, 0.07); }
+.defense-card-top { display: flex; align-items: flex-start; gap: 14px; }
+.defense-icon-wrap { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font-size: 1.25rem; flex-shrink: 0; }
+.defense-icon-wrap.amber { background: #FEF3C7; }
+.defense-icon-wrap.red { background: #FEE2E2; }
+.defense-icon-wrap.crimson { background: #FFE4E6; }
+.defense-icon-wrap.emerald { background: #D1FAE5; }
+.defense-icon-wrap.purple { background: #F3E8FF; }
+.defense-icon-wrap.green { background: #DCFCE7; }
+.defense-card-body h3 { font-size: 0.95rem; font-weight: 700; color: #0F172A; margin-bottom: 4px; }
+.defense-card-body p { font-size: 0.8rem; line-height: 1.5; color: #64748B; }
+.defense-card-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 9px 13px; border-radius: 8px; border: 1px solid #E2E8F0; background: #F8FAFC; color: #1E293B; font-size: 0.8rem; font-weight: 600; font-family: var(--font-poppins); cursor: pointer; transition: all 0.15s ease; }
+.defense-card-btn:hover { background: #0000FF; border-color: #0000FF; color: #FFFFFF; }
+.defense-card-btn.primary { background: #0000FF; border-color: #0000FF; color: #FFFFFF; }
+.defense-card-btn.primary:hover { background: #0000CC; }
