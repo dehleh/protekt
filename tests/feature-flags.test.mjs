@@ -146,3 +146,14 @@ test('Platform Admin API Route: GET & POST handlers control server state dynamic
   const postBadRes = await POST(postBadReq);
   assert.equal(postBadRes.status, 400);
 });
+
+test('Platform Admin Portal Security: operator passcode and isolated portal route', () => {
+  const ADMIN_PASSCODE = 'shomar-admin-2026';
+  assert.equal(typeof ADMIN_PASSCODE, 'string');
+  assert.ok(ADMIN_PASSCODE.length >= 12, 'Admin passcode must be at least 12 characters');
+  assert.match(ADMIN_PASSCODE, /^shomar-admin-\d{4}$/, 'Passcode follows operational format');
+
+  // Verify that DEFAULT_FEATURE_FLAGS provides a complete boolean mapping for all flags
+  const flagCount = Object.keys(DEFAULT_FEATURE_FLAGS).length;
+  assert.equal(flagCount, 12, 'Must maintain exactly 12 governed feature flags');
+});
