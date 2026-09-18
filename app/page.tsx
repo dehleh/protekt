@@ -84,7 +84,15 @@ function HomeContent() {
     try { const restored = parseLocalState(localStorage.getItem(STORAGE_KEY)); localRef.current = restored; setLocal(restored); }
     catch { setStorageWarning('This browser cannot save progress. You can still use SHOMAR, but changes will last only for this session.'); }
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      if (process.env.NODE_ENV === 'production') {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      } else {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          for (const reg of regs) {
+            void reg.unregister();
+          }
+        }).catch(() => {});
+      }
     }
     setReady(true);
   }, []);

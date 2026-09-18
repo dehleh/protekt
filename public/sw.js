@@ -32,8 +32,19 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  // Only cache same-origin assets or local OCR assets
+  // Only cache same-origin assets
   if (url.origin !== self.location.origin) return;
+
+  // Never intercept Vite internals, HMR, dev chunks, or API routes
+  if (
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/api/') ||
+    url.pathname.includes('vite') ||
+    url.pathname.includes('node_modules') ||
+    url.pathname.includes('virtual:')
+  ) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(cached => {
