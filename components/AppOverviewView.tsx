@@ -10,7 +10,7 @@ function CategoryIcon({ category }: { category: AppCategory }) {
   if (category === 'Social') return <UsersRound size={18}/>;
   if (category === 'Identity') return <KeyRound size={18}/>;
   if (category === 'Email') return <Mail size={18}/>;
-  if (category === 'Messaging') return <MessageCircle size={20}/>;
+  if (category === 'Messaging') return <MessageCircle size={18}/>;
   return <Banknote size={18}/>;
 }
 
