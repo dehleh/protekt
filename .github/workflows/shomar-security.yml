@@ -1,0 +1,97 @@
+# Shomar Security Scan — GitHub Actions
+# Docs: https://shomar-production.up.railway.app/docs#/CI%2FCD%20Pipeline%20Integration
+name: Shomar Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  security-events: write   # for SARIF upload
+  pull-requests: write     # for PR comments
+
+jobs:
+  shomar-scan:
+    name: "Shomar Security Scan"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trigger Shomar Scan
+        id: trigger
+        run: |
+          RESPONSE=$(curl -sf -X POST "https://shomar-production.up.railway.app/api/cicd/trigger" \
+            -H "X-Api-Key: ${{ secrets.SHOMAR_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repository_url": "${{ github.server_url }}/${{ github.repository }}.git",
+              "branch": "${{ github.head_ref || github.ref_name }}",
+              "commit_sha": "${{ github.sha }}",
+              "author": "${{ github.actor }}",
+              "commit_message": "${{ github.event.head_commit.message || github.event.pull_request.title }}",
+              "scan_types": ["sast", "secrets", "sca", "iac"],
+              "fail_on_critical": true,
+              "severity_threshold": "high",
+              "compliance_frameworks": null,
+              "output_formats": ["sarif", "json"],
+              "baseline_mode": "diff",
+              "smart_scan_selection": true,
+              "gate_mode": "block",
+              "asset_criticality": "standard",
+              "environment": "production",
+              "application_name": null,
+              "service_name": null,
+              "asset_type": "repository",
+              "owners": [],
+              "data_classification": [],
+              "notification_channels": ["dashboard", "email"],
+              "internet_facing": false,
+              "production": true,
+              "handles_payments": false,
+              "handles_customer_data": false,
+              "ci_provider": "github-actions",
+              "ci_job_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }')
+          JOB_ID=$(echo "$RESPONSE" | jq -r '.job_id')
+          echo "job_id=$JOB_ID" >> "$GITHUB_OUTPUT"
+          echo "Scan queued: $JOB_ID"
+
+      - name: Wait for Scan Results
+        id: poll
+        run: |
+          JOB_ID="${{ steps.trigger.outputs.job_id }}"
+          for i in $(seq 1 60); do
+            STATUS=$(curl -sf "https://shomar-production.up.railway.app/api/cicd/scans/$JOB_ID" \
+              -H "X-Api-Key: ${{ secrets.SHOMAR_API_KEY }}" | jq -r '.status')
+            echo "Attempt $i: $STATUS"
+            if [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ]; then
+              break
+            fi
+            sleep 5
+          done
+          RESULT=$(curl -sf "https://shomar-production.up.railway.app/api/cicd/scans/$JOB_ID" \
+            -H "X-Api-Key: ${{ secrets.SHOMAR_API_KEY }}")
+          EXIT_CODE=$(echo "$RESULT" | jq -r '.exit_code // 0')
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          echo "$RESULT" | jq .
+
+      - name: Download SARIF
+        if: always()
+        run: |
+          JOB_ID="${{ steps.trigger.outputs.job_id }}"
+          curl -sf "https://shomar-production.up.railway.app/api/cicd/scans/$JOB_ID/sarif" \
+            -H "X-Api-Key: ${{ secrets.SHOMAR_API_KEY }}" \
+            -o shomar-results.sarif || echo "No SARIF available"
+
+      - name: Upload SARIF to GitHub Security
+        if: always() && hashFiles('shomar-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: shomar-results.sarif
+
+      - name: Fail on Policy Violation
+        if: steps.poll.outputs.exit_code != '0'
+        run: |
+          echo "::error::Shomar security scan failed with exit code ${{ steps.poll.outputs.exit_code }}"
+          exit ${{ steps.poll.outputs.exit_code }}
